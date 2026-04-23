@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Word Typing Race (서버 연동)</title>
+<title>Word Typing Race (Cloud DB)</title>
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -200,6 +200,14 @@ textarea{min-height:150px;resize:vertical;font-family:var(--mono);font-size:13px
 </style>
 </head>
 <body>
+<script>
+// =========================================================
+// 🚀 [필수 설정] 교사님이 발급받은 Apps Script 웹앱 URL을 아래에 붙여넣으세요!
+// 학생들은 이 URL을 통해 시트에서 자동으로 설정과 랭킹을 가져옵니다.
+// =========================================================
+const TEACHER_SHEETS_URL = ""; 
+// 예시: "https://script.google.com/macros/s/AKfycb.../exec"
+</script>
 <div class="wrap">
 
 <!-- 헤더 -->
@@ -306,7 +314,7 @@ textarea{min-height:150px;resize:vertical;font-family:var(--mono);font-size:13px
       <label>Apps Script 웹앱 URL</label>
       <input type="text" id="sheets-url" placeholder="https://script.google.com/macros/s/.../exec"/>
     </div>
-    <p class="hint">결과 저장 및 순위 조회에 모두 사용됩니다.</p>
+    <p class="hint">이 URL이 소스코드 상단(TEACHER_SHEETS_URL)에 등록되어 있어야 학생들과 연동됩니다.</p>
   </div>
 
   <!-- 비밀번호 변경 -->
@@ -319,23 +327,23 @@ textarea{min-height:150px;resize:vertical;font-family:var(--mono);font-size:13px
     <div class="br"><button class="btn bs" onclick="changePw()">변경 적용</button></div>
   </div>
 
-  <!-- 서버 연동 안내 & 다운로드 영역 -->
+  <!-- 클라우드 DB 저장 (중요) -->
   <div class="br" style="margin-bottom:28px; flex-direction: column; gap: 10px; align-items: stretch;">
     <div style="background: rgba(0,229,255,.08); border: 1px solid rgba(0,229,255,.3); padding: 16px; border-radius: 12px; font-size: 13px; line-height: 1.6; color: var(--text); text-align: center;">
-      <strong style="color:var(--accent)">[☁️ 서버에 설정 적용하는 방법]</strong><br>
-      단원과 구글 시트 설정을 모두 마쳤다면, 아래 버튼을 눌러 설정 파일(<span style="font-family:var(--mono); color:var(--accent3)">config.json</span>)을 다운로드하세요.<br>
-      받은 <strong>config.json</strong> 파일을 서버의 HTML 파일과 <strong>같은 위치(폴더)</strong>에 덮어쓰기로 업로드하면 학생들에게 일괄 적용됩니다.
+      <strong style="color:var(--accent)">[☁️ 서버 없이 구글 시트 데이터베이스 연동]</strong><br>
+      단원과 단어 설정을 모두 마친 후, 아래 버튼을 누르면 <br>구글 시트의 <strong>'설정'</strong> 탭에 데이터가 안전하게 일괄 저장됩니다.<br>
+      (저장 후 학생들은 접속 시 실시간으로 최신 설정을 불러옵니다.)
     </div>
     <div style="display:flex; gap:10px; width: 100%;">
       <button class="btn bs" onclick="goto('s-mode')">← 나가기</button>
-      <button class="btn bp" onclick="downloadConfig()" style="margin-left:auto; font-size:13px; padding: 14px 24px; box-shadow: 0 4px 14px rgba(0,229,255,0.2);">⬇️ 설정 파일 (config.json) 다운로드</button>
+      <button class="btn bp" id="btn-save-cloud" onclick="saveConfigToSheets()" style="margin-left:auto; font-size:13px; padding: 14px 24px; box-shadow: 0 4px 14px rgba(0,229,255,0.2);">☁️ 구글 시트에 설정 저장</button>
     </div>
   </div>
 </div>
 
 <!-- ④ 학생 단원 선택 -->
 <div class="scr" id="s-lesson">
-  <div id="bnr-warn" class="bnr warn" style="display:none">⚠️ 등록된 단원이 없습니다. 교사가 설정을 서버에 업로드해야 합니다.</div>
+  <div id="bnr-warn" class="bnr warn" style="display:none">⚠️ 아직 구글 시트에서 설정을 불러오지 못했거나 등록된 단원이 없습니다.</div>
   <div class="card">
     <div class="ct">단원 선택</div>
     <div class="lsel-grid" id="lsel-grid"></div>
@@ -412,13 +420,13 @@ textarea{min-height:150px;resize:vertical;font-family:var(--mono);font-size:13px
     <button class="btn bv" onclick="goRankingFromResult()" style="margin-left:auto">🏆 순위 보기</button>
   </div>
   <div class="card" id="guide" style="display:none;margin-bottom:30px">
-    <div class="ct t">Google Sheets 설정 방법</div>
+    <div class="ct t">Google Sheets 설정 및 DB 연동 방법</div>
     <ol style="padding-left:18px;line-height:2.4;font-size:13px;color:var(--muted)">
       <li>Google Sheets 새 파일 만들기</li>
       <li><strong style="color:var(--text)">확장 프로그램 → Apps Script</strong> 클릭</li>
       <li>기존 코드 전부 삭제 후 아래 코드 붙여넣기</li>
       <li><strong style="color:var(--text)">배포 → 새 배포 → 웹앱</strong> → 액세스: <strong style="color:var(--text)">모든 사용자</strong></li>
-      <li>생성된 URL을 교사 설정에 넣고 config.json을 다운로드하여 서버에 배포</li>
+      <li>생성된 URL을 이 HTML 소스 최상단의 <span style="font-family:var(--mono);color:var(--accent3)">TEACHER_SHEETS_URL</span> 변수 안에 붙여넣고 서버에 올리시면 완료됩니다.</li>
     </ol>
     <div class="codeblk"><pre id="script-pre"></pre></div>
   </div>
@@ -496,45 +504,49 @@ let words=[], player={}, queue=[], current=0, results=[];
 let qStart=0, totalStart=0, timer=null;
 let rankData=[], rankTab='all', rankLesson='', lastScore=null;
 
-// ── 서버 연동을 위한 전역 변수 ──
+// ── 서버 연동 (시트 DB) 전역 변수 ──
 let isConfigLoaded = false;
 let globalConfig = { school: '', sheetsUrl: '', lessons: [] };
 
-// ── Apps Script ──
-const SCRIPT=`// ★ 이 코드 전체를 Apps Script에 붙여넣으세요 ★
+// ── Apps Script (DB 연동 버전으로 업데이트됨) ──
+const SCRIPT=`// ★ 아래 코드를 Apps Script에 복사해서 붙여넣으세요 ★
 
 function doGet(e) {
   var action = e.parameter.action;
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
 
+  // 1. 설정 정보 불러오기 (Cloud DB)
+  if (action === 'getConfig') {
+    var sheet = ss.getSheetByName('설정');
+    var val = sheet ? sheet.getRange("A1").getValue() : "";
+    return ContentService.createTextOutput(JSON.stringify({ status: 'ok', config: val }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  // 2. 순위 불러오기
   if (action === 'getRanking') {
-    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    var sheet = ss.getSheetByName('랭킹');
+    if (!sheet) return ContentService.createTextOutput(JSON.stringify({ status: 'ok', rows: [] })).setMimeType(ContentService.MimeType.JSON);
     var data = sheet.getDataRange().getValues();
-    if (data.length < 2) {
-      return ContentService.createTextOutput(
-        JSON.stringify({ status: 'ok', rows: [] })
-      ).setMimeType(ContentService.MimeType.JSON);
-    }
+    if (data.length < 2) return ContentService.createTextOutput(JSON.stringify({ status: 'ok', rows: [] })).setMimeType(ContentService.MimeType.JSON);
     var headers = data[0];
     var rows = data.slice(1).map(function(r) {
       var obj = {};
       headers.forEach(function(h, i) { obj[String(h)] = r[i]; });
       return obj;
     });
-    return ContentService.createTextOutput(
-      JSON.stringify({ status: 'ok', rows: rows })
-    ).setMimeType(ContentService.MimeType.JSON);
+    return ContentService.createTextOutput(JSON.stringify({ status: 'ok', rows: rows }))
+      .setMimeType(ContentService.MimeType.JSON);
   }
 
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  // 3. 학생 결과 점수 저장
   var p = e.parameter;
-
   if (!p.grade || !p.class || !p.number || !p.name || !p.lesson) {
-    return ContentService.createTextOutput(
-      JSON.stringify({ status: 'error', message: 'missing required fields' })
-    ).setMimeType(ContentService.MimeType.JSON);
+    return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: 'missing required fields' })).setMimeType(ContentService.MimeType.JSON);
   }
-
-  if (sheet.getLastRow() === 0) {
+  var sheet = ss.getSheetByName('랭킹');
+  if (!sheet) {
+    sheet = ss.insertSheet('랭킹');
     sheet.appendRow(['제출일시','학년','반','번호','이름','단원','점수','정답수','오답수','총시간(초)','평균시간(초)','단어별결과']);
   }
   sheet.appendRow([
@@ -543,48 +555,65 @@ function doGet(e) {
     Number(p.score)||0, Number(p.correct)||0, Number(p.wrong)||0,
     Number(p.totalTime)||0, Number(p.avgTime)||0, p.wordResults||''
   ]);
-  return ContentService.createTextOutput(
-    JSON.stringify({ status: 'ok' })
-  ).setMimeType(ContentService.MimeType.JSON);
+  return ContentService.createTextOutput(JSON.stringify({ status: 'ok' })).setMimeType(ContentService.MimeType.JSON);
+}
+
+function doPost(e) {
+  var p = e.parameter;
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  
+  // 4. 교사 설정 정보 시트에 저장하기 (Cloud DB)
+  if (p.action === 'saveConfig' && p.configData) {
+    var sheet = ss.getSheetByName('설정');
+    if (!sheet) {
+      sheet = ss.insertSheet('설정');
+    }
+    sheet.clear();
+    sheet.getRange("A1").setValue(p.configData);
+    return ContentService.createTextOutput(JSON.stringify({ status: 'ok' })).setMimeType(ContentService.MimeType.JSON);
+  }
+  return ContentService.createTextOutput("Invalid POST Request");
 }`;
 document.getElementById('script-pre').textContent=SCRIPT;
 
 
-// ── 데이터 로딩 (서버의 config.json 시도) ──
+// URL 로직
+function getAppUrl() {
+  return TEACHER_SHEETS_URL || localStorage.getItem(K_URL) || '';
+}
+
+// ── 데이터 로딩 (구글 시트에서 직접 가져오기) ──
 async function initAppConfig() {
-  try {
-    // 같은 경로에 있는 config.json 파일을 불러옵니다. 브라우저 캐시 무시.
-    const res = await fetch('config.json?t=' + new Date().getTime(), { cache: 'no-store' });
-    if(res.ok) {
-      const data = await res.json();
-      globalConfig = data;
-      isConfigLoaded = true;
-      
-      lessons = data.lessons || [];
-      document.getElementById('school-nm').textContent = data.school || '';
-      console.log('✓ 서버에서 config.json을 성공적으로 불러왔습니다.');
-      return;
+  const url = getAppUrl();
+  if(url) {
+    try {
+      const res = await fetch(url + '?action=getConfig', { cache: 'no-store' });
+      const json = await res.json();
+      if(json.status === 'ok' && json.config) {
+        const data = JSON.parse(json.config);
+        globalConfig = data;
+        isConfigLoaded = true;
+        
+        lessons = data.lessons || [];
+        document.getElementById('school-nm').textContent = data.school || '';
+        console.log('✓ 구글 시트에서 DB 설정을 성공적으로 불러왔습니다.');
+        return;
+      }
+    } catch(e) {
+      console.log('구글 시트 설정 로드 실패 (CORS 또는 URL 오류)', e);
     }
-  } catch(e) {
-    console.log('config.json 로드 실패, 백업 스토리지 사용');
   }
   
-  // 서버에 config.json이 없을 경우, 이전에 로컬에서 테스트했던 데이터를 백업용으로 불러옵니다.
+  // 시트에서 못 가져오면(교사 최초설정 등) 로컬 백업 확인
   try{ lessons=JSON.parse(localStorage.getItem(K_LESSONS)||'[]'); }catch{ lessons=[]; }
   globalConfig.school = localStorage.getItem(K_SCHOOL)||'';
   globalConfig.sheetsUrl = localStorage.getItem(K_URL)||'';
   document.getElementById('school-nm').textContent = globalConfig.school;
 }
 
-// 앱 실행 시 초기화
 window.addEventListener('DOMContentLoaded', () => {
   initAppConfig();
 });
-
-// 설정된 구글 시트 URL을 가져오는 헬퍼 함수
-function getAppUrl() {
-  return isConfigLoaded ? globalConfig.sheetsUrl : (localStorage.getItem(K_URL)||'');
-}
 
 // ── Helpers ──
 function parseWords(txt){
@@ -604,14 +633,11 @@ function goto(id){
   else{ sub.textContent='영어 단어 타이핑 게임'; sub.style.color='';}
 }
 
-
 // ── 교사 로그인 ──
 function doLogin(){
   const pw=document.getElementById('tpw').value;
   if(pw===(localStorage.getItem(K_PW)||'1234')){
     document.getElementById('tpw').value='';
-    
-    // 교사 모드 진입 시, 현재 로드된 설정값을 폼에 채워넣음
     document.getElementById('sheets-url').value = getAppUrl();
     document.getElementById('school-input').value = isConfigLoaded ? globalConfig.school : (localStorage.getItem(K_SCHOOL)||'');
     
@@ -672,34 +698,48 @@ function loadSample(){
   document.getElementById('word-input').value=s; renderChips(parseWords(s));
 }
 
-// ── 다운로드 및 서버 적용 (가장 중요) ──
-function downloadConfig(){
+// ── 구글 시트에 일괄 저장 (DB 연동의 핵심) ──
+async function saveConfigToSheets(){
   if(editIdx>=0) lessons[editIdx].words=document.getElementById('word-input').value.trim();
   
   const url=document.getElementById('sheets-url').value.trim();
   const school=document.getElementById('school-input').value.trim();
   
-  // 1. 현재 브라우저(로컬)에도 백업으로 저장
+  if(!url) {
+    alert("❌ 구글 시트 URL을 먼저 입력해야 서버에 저장할 수 있습니다.");
+    return;
+  }
+  
+  // 로컬 백업 반영
   localStorage.setItem(K_LESSONS,JSON.stringify(lessons));
   localStorage.setItem(K_URL,url);
   localStorage.setItem(K_SCHOOL,school);
   
-  // 2. 현재 앱 상태 즉시 업데이트
   globalConfig = { school: school, sheetsUrl: url, lessons: lessons };
   isConfigLoaded = true;
   document.getElementById('school-nm').textContent = school;
 
-  // 3. config.json 파일로 다운로드
-  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(globalConfig, null, 2));
-  const downloadAnchor = document.createElement('a');
-  downloadAnchor.setAttribute("href", dataStr);
-  downloadAnchor.setAttribute("download", "config.json");
-  document.body.appendChild(downloadAnchor);
-  downloadAnchor.click();
-  downloadAnchor.remove();
-  
-  alert('✨ [config.json] 파일이 다운로드되었습니다!\n\n이 파일을 반드시 서버의 HTML 파일과 같은 폴더에 업로드(덮어쓰기)해야 학생들에게 설정이 적용됩니다.');
-  goto('s-mode');
+  // UI 로딩
+  const btn = document.getElementById('btn-save-cloud');
+  const orgText = btn.textContent;
+  btn.textContent = "⏳ 구글 시트에 기록 중...";
+  btn.disabled = true;
+
+  try {
+    const fd = new FormData();
+    fd.append('action', 'saveConfig');
+    fd.append('configData', JSON.stringify(globalConfig));
+
+    // mode: no-cors 사용 시 에러없이 폼 전송됨. 응답값 JSON 파싱은 불가능함
+    await fetch(url, { method: 'POST', body: fd, mode: 'no-cors' });
+    
+    btn.textContent = "✅ 구글 시트 저장 완료!";
+    setTimeout(()=>{ btn.textContent = orgText; btn.disabled = false; goto('s-mode'); }, 1500);
+  } catch(e) {
+    alert("저장 실패. 인터넷 연결이나 URL을 확인하세요.");
+    btn.textContent = orgText;
+    btn.disabled = false;
+  }
 }
 
 function changePw(){
@@ -712,7 +752,13 @@ function changePw(){
 }
 
 // ── 학생 진입 ──
-function enterStudent(){
+async function enterStudent(){
+  const url = getAppUrl();
+  if(url && !isConfigLoaded) {
+    document.getElementById('school-nm').textContent = "⏳ 설정 불러오는 중...";
+    await initAppConfig();
+  }
+
   const valid=lessons.filter(l=>parseWords(l.words).length>0);
   document.getElementById('bnr-warn').style.display=valid.length?'none':'flex';
   document.getElementById('lsel-grid').innerHTML=valid.map(l=>`
@@ -723,6 +769,7 @@ function enterStudent(){
     </div>`).join('');
   selLesson=null; goto('s-lesson');
 }
+
 function selectStudentLesson(code){
   document.querySelectorAll('.lsel-card').forEach(c=>c.classList.remove('sel'));
   const el=document.getElementById('lc-'+code);
@@ -817,7 +864,6 @@ function skipWord(){
   const el=((Date.now()-qStart)/1000);
   clearInterval(timer);
   
-  // 스킵 시 오답(0점) 처리
   results.push({word:q.word,meaning:q.meaning,correct:false,elapsed:el.toFixed(1),score:0});
   
   const inp=document.getElementById('tinput');
@@ -829,6 +875,7 @@ function skipWord(){
     current>=queue.length?endGame():renderQ(); 
   },500);
 }
+
 function endGame(){
   clearInterval(timer);
   const totalTime=((Date.now()-totalStart)/1000).toFixed(1);
@@ -865,7 +912,7 @@ async function saveSheets(url,s){
     el.innerHTML='<div class="ss err">✗ 저장 실패: 학생 정보 또는 단원 정보가 없습니다.</div>';
     return;
   }
-  el.innerHTML='<div class="ss">⏳ Google Sheets에 저장 중...</div>';
+  el.innerHTML='<div class="ss">⏳ Google Sheets 랭킹에 점수 전송 중...</div>';
   const wr=results.map(r=>`${r.word}(${r.correct?"O":"X"},${r.elapsed}s)`).join(" | ");
   const lessonLabel=selLesson.code;
   const p=new URLSearchParams({
@@ -933,7 +980,7 @@ async function loadRankData(){
   }
   body.innerHTML='<div class="rank-loading"><span class="spinner"></span>순위 데이터를 불러오는 중...</div>';
   try{
-    const res=await fetch(url+'?action=getRanking');
+    const res=await fetch(url+'?action=getRanking', {cache:'no-store'});
     const json=await res.json();
     if(json.status!=='ok') throw new Error('서버 오류');
     rankData=json.rows||[];
