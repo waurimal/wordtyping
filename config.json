@@ -5,7 +5,32 @@
     {
       "code": "L01",
       "name": "Lesson 01",
-      "words": "apple : 사과\nbanana : 바나나\ncomputer : 컴퓨터\nlibrary : 도서관\nbeautiful : 아름다운\nfriend : 친구\nschool : 학교\nteacher : 선생님\nmorning : 아침\nimportant : 중요한"
+      "words": "first : 첫 번째의\nsecond : 두 번째의\nthird : 세 번째의\nfourth : 네 번째의\nfifth : 다섯 번째의\nsixth : 여섯 번째의\ngrade : 학년\nspell : 철자를 쓰다\njoin : 가입하다\nclub : 동아리\ndance : 춤추다, 춤\ndraw : 그리다\nplay : 놀다, 연주하다\nlisten : 듣다\nread : 읽다\nride : (자전거 등을) 타다"
+    },
+    {
+      "code": "L02",
+      "name": "Lesson 02",
+      "words": "season : 계절\nspring : 봄\nsummer : 여름\nfall : 가을\nwinter : 겨울\nbeautiful : 아름다운\nflower : 꽃\ncold : 추운\nwarm : 따뜻한\ndelicious : 맛있는\nalso : 또한\ncolorful : 다채로운\nswim : 수영하다\nfield trip : 현장학습\nclear : 맑은\nbright : 밝은"
+    },
+    {
+      "code": "L03",
+      "name": "Lesson 03",
+      "words": "campaign : 홍보활동\nearth : 지구\npaper : 종이\nposter : 포스터\nsave : 구하다\nshirt : 셔츠\nturn off : 끄다\nwhen : 언제\nworld : 세계"
+    },
+    {
+      "code": "L04",
+      "name": "Lesson 04",
+      "words": "because : ~ 때문에\nbelt : 띠\nbirdhouse : 새집, 새장\nbreak : 부수다, 깨다\ncongratulations : 축하\ntest : 시험\nwhy : 왜\nworry : 걱정하다\nwrong : 나쁜, 틀린"
+    },
+    {
+      "code": "L05",
+      "name": "Lesson 05",
+      "words": "bank : 은행\nblock : 구역\nhospital : 병원\nhungry : 배고픈\nrestaurant : 식당\nleft : 왼쪽\nrestroom : 화장실\nstop : 정류장\nstore : 가게\nstraight : 똑바로, 일직선으로\ntown : 마을"
+    },
+    {
+      "code": "L06",
+      "name": "Lesson 06",
+      "words": "aunt : 고모\ndaughter : 딸\ndress : 드레스\neye : 눈\nhair : 머리카락\nlong : 긴\nof : …의\nsame : 같은\nsand : 모래\nshort : 짧은"
     }
   ]
 }
