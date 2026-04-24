@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Word Typing Race</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Noto+Sans+KR:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
 /* 라이트 테마(흰색 배경)용 색상 팔레트 - 모던 글래스모피즘 */
 :root{
@@ -14,7 +14,7 @@
   --teacher:#d97706; --text:#0f172a; --muted:#64748b;
   --border:rgba(255, 255, 255, 0.7); --success:#059669;
   --gold:#d97706; --silver:#64748b; --bronze:#92400e;
-  --mono:'Space Mono',monospace; --sans:'Noto Sans KR',sans-serif;
+  --mono:'Space Mono',monospace; --sans:'Nanum Gothic',sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:30px 20px; overflow-x: hidden;}
@@ -47,7 +47,7 @@ body::before{
 }
 /* 수정: 학교명 30px, 부제 25px */
 .school-nm{font-size:clamp(20px, 4vw, 30px);color:var(--accent3);font-weight:800;margin-top:20px;letter-spacing:3px;min-height:34px; text-shadow:0 4px 12px var(--accent3-glow);}
-.hdr-sub{font-size:clamp(16px, 3vw, 25px);color:var(--muted);margin-top:12px;letter-spacing:2px;transition:color .3s; font-weight:500;}
+.hdr-sub{font-size:clamp(16px, 3vw, 25px);color:var(--muted);margin-top:12px;letter-spacing:2px;transition:color .3s; font-weight:700;}
 
 /* SCREENS & TRANSITIONS */
 .scr{display:none; opacity:0;}
