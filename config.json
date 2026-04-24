@@ -1,0 +1,11 @@
+{
+  "school": "이의초등학교",
+  "sheetsUrl": "https://script.google.com/macros/s/AKfycbzZtY7g8u-x-myqHJW94VSPPjEr5OerzxkDzqvW60KIE-A2fZWD3wpH8zPDxox7OAAg-A/exec",
+  "lessons": [
+    {
+      "code": "L01",
+      "name": "Lesson 01",
+      "words": "apple : 사과\nbanana : 바나나\ncomputer : 컴퓨터\nlibrary : 도서관\nbeautiful : 아름다운\nfriend : 친구\nschool : 학교\nteacher : 선생님\nmorning : 아침\nimportant : 중요한"
+    }
+  ]
+}
