@@ -37,10 +37,10 @@ body::before{
 .wrap{width:100%;max-width:960px;position:relative;z-index:1;}
 
 /* HEADER (크게) */
-.hdr{text-align:center;padding:20px 0 30px;}
-.hdr h1{font-family:var(--mono);font-size:40px;letter-spacing:6px;color:var(--accent);text-transform:uppercase;text-shadow:0 0 30px var(--accent-glow);}
-.school-nm{font-size:20px;color:var(--accent3);font-weight:700;margin-top:12px;letter-spacing:2px;min-height:28px; text-shadow:0 0 20px var(--accent3-glow);}
-.hdr-sub{font-size:16px;color:var(--muted);margin-top:8px;letter-spacing:1px;transition:color .3s;}
+.hdr{text-align:center;padding:40px 0 50px;}
+.hdr h1{font-family:var(--mono);font-size:clamp(40px, 8vw, 80px);letter-spacing:6px;color:var(--accent);text-transform:uppercase;text-shadow:0 0 40px var(--accent-glow);}
+.school-nm{font-size:clamp(20px, 6vw, 60px);color:var(--accent3);font-weight:700;margin-top:24px;letter-spacing:3px;min-height:40px; text-shadow:0 0 30px var(--accent3-glow);}
+.hdr-sub{font-size:clamp(16px, 4.5vw, 48px);color:var(--muted);margin-top:16px;letter-spacing:2px;transition:color .3s;}
 
 /* SCREENS & TRANSITIONS */
 .scr{display:none; opacity:0;}
@@ -98,8 +98,8 @@ textarea{min-height:180px;resize:vertical;font-family:var(--mono);font-size:15px
 .bs:hover{background:var(--surface2);border-color:rgba(255,255,255,0.2);transform:translateY(-2px);}
 .br{display:flex;gap:16px;margin-top:24px;flex-wrap:wrap;align-items:center;}
 
-/* MODE SELECT BUTTONS (초기화면 3개 버튼 크게) */
-.msel{display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;margin-top:20px;}
+/* MODE SELECT BUTTONS (초기화면 2개 버튼 아주 크게) */
+.msel{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:20px;margin-bottom:40px;}
 .mbtn{
   background:var(--surface2); border:1px solid rgba(255,255,255,0.08); border-radius:24px;
   padding:48px 24px; cursor:pointer; text-align:center; transition:all .3s ease;
@@ -278,23 +278,21 @@ const TEACHER_SHEETS_URL = "https://script.google.com/macros/s/AKfycbxCcVn-591aZ
 
 <!-- ① 모드 선택 -->
 <div class="scr on" id="s-mode">
-  <div class="card">
+  <div class="card" style="padding: 40px 30px;">
     <div class="msel">
-      <div class="mbtn sb" onclick="enterStudent()">
-        <div class="mico">🎮</div>
-        <div class="mlbl">게임 시작</div>
-        <div class="mdsc">단원 선택 후<br>바로 타이핑 도전!</div>
+      <div class="mbtn sb" onclick="enterStudent()" style="padding: 60px 24px;">
+        <div class="mico" style="font-size: 80px;">🎮</div>
+        <div class="mlbl" style="font-size: 28px; margin-top: 10px;">게임 시작</div>
+        <div class="mdsc" style="font-size: 18px;">단원 선택 후<br>바로 타이핑 도전!</div>
       </div>
-      <div class="mbtn rb" onclick="enterRanking()">
-        <div class="mico">🏆</div>
-        <div class="mlbl">순위 확인</div>
-        <div class="mdsc">우리 반, 학년,<br>전체 랭킹 보기</div>
+      <div class="mbtn rb" onclick="enterRanking()" style="padding: 60px 24px;">
+        <div class="mico" style="font-size: 80px;">🏆</div>
+        <div class="mlbl" style="font-size: 28px; margin-top: 10px;">순위 확인</div>
+        <div class="mdsc" style="font-size: 18px;">우리 반, 학년,<br>전체 랭킹 보기</div>
       </div>
-      <div class="mbtn tb" onclick="goto('s-login')">
-        <div class="mico">🔧</div>
-        <div class="mlbl">교사 모드</div>
-        <div class="mdsc">단원 및 단어,<br>게임 환경 설정</div>
-      </div>
+    </div>
+    <div style="text-align: center; margin-top: 20px; padding-top: 30px; border-top: 1px solid var(--border);">
+      <button class="btn bs" onclick="goto('s-login')" style="font-size: 14px; padding: 12px 24px; color: var(--muted); border-color: rgba(255,255,255,0.1);">🔧 교사 모드 (설정)</button>
     </div>
   </div>
 </div>
@@ -554,6 +552,12 @@ const TEACHER_SHEETS_URL = "https://script.google.com/macros/s/AKfycbxCcVn-591aZ
     <button class="btn bp" onclick="loadRankData()" style="margin-left:auto; background:linear-gradient(135deg, var(--accent3), #7c3aed); box-shadow:0 4px 14px rgba(168,85,247,.25);">데이터 새로고침 ↺</button>
   </div>
 </div>
+
+<!-- 푸터 (저작권 및 만든이) -->
+<footer style="text-align: center; padding: 40px 20px 20px; margin-top: 20px; color: var(--muted); font-size: 15px; line-height: 1.8; letter-spacing: 0.5px;">
+  만든이: 곽현석(이의초등학교)<br>
+  Copyright &copy; 2026 Eui Elementary School. All Rights Reserved.
+</footer>
 
 </div><!-- /wrap -->
 <script>
