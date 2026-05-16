@@ -383,13 +383,25 @@ footer {margin-top: auto; text-align: center; padding: 30px 20px 10px; color: va
 </div>
 
 <script type="module">
+// ==========================================
+// 💡 선생님의 Firebase 프로젝트 설정값 내장
+// ==========================================
+const TEACHER_FIREBASE_CONFIG = {
+  apiKey: "AIzaSyBe99wcbru7hsyCBg0hPYPdqyd85RKEZGw",
+  authDomain: "wordtyping-41246.firebaseapp.com",
+  projectId: "wordtyping-41246",
+  storageBucket: "wordtyping-41246.firebasestorage.app",
+  messagingSenderId: "695233843018",
+  appId: "1:695233843018:web:85bedb2204e0ffcc31bbb3",
+  measurementId: "G-ZZ29Z3TJQ1"
+};
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { getFirestore, doc, setDoc, updateDoc, collection, addDoc, onSnapshot, query, getDocs, runTransaction, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // ==========================================
 // 1. GLOBAL STATE & UI FUNCTIONS (최상단 배치)
-// (Firebase 연결 전에도 버튼이 작동하도록 보장합니다)
 // ==========================================
 let currentUser = null;
 let isFirebaseReady = false;
@@ -417,6 +429,7 @@ let score = 0;
 let results = [];
 let wordStart = 0;
 let totalStart = 0;
+let isDataListenerInitialized = false;
 
 // 반 Select 옵션 채우기 (1~20반)
 const pClassSel = document.getElementById('p-class');
@@ -487,31 +500,17 @@ window.promptTeacher = function() {
 };
 
 // ==========================================
-// 2. FIREBASE INITIALIZATION
+// 2. FIREBASE INITIALIZATION & FALLBACK
 // ==========================================
 let app, auth, db;
-const appId = typeof __app_id !== 'undefined' ? __app_id : 'word-typing-race-app';
+const appId = 'word-race'; 
 
 function initFirebase() {
-  let config = null;
-  
-  // 환경에서 자동으로 제공되는 설정 사용 (기존 프로그램들과 동일한 자동 연동 방식)
-  if (typeof __firebase_config !== 'undefined') {
-    try { config = JSON.parse(__firebase_config); } catch(e){}
-  }
-
-  if (!config || Object.keys(config).length === 0) {
-    console.warn("Firebase 설정이 없습니다.");
-    return;
-  }
-
   try {
-    app = initializeApp(config);
+    app = initializeApp(TEACHER_FIREBASE_CONFIG);
     auth = getAuth(app);
     db = getFirestore(app);
     isFirebaseReady = true;
-
-    // 인증 및 구독 시작
     startAuth();
   } catch(e) {
     console.error("Firebase 초기화 에러:", e);
@@ -520,50 +519,61 @@ function initFirebase() {
 
 async function startAuth() {
   try {
-    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-      try {
-        await signInWithCustomToken(auth, __initial_auth_token);
-      } catch (customErr) {
-        console.warn("커스텀 토큰 로그인 실패, 익명 로그인으로 전환합니다.", customErr);
-        await signInAnonymously(auth);
-      }
-    } else {
-      await signInAnonymously(auth);
-    }
+    await signInAnonymously(auth);
   } catch(e) { 
-    console.error("Auth error", e); 
-    alert("Firebase 인증 에러: Firebase Console의 Authentication(인증) 메뉴에서 'Sign-in method(로그인 방법)' 중 '익명(Anonymous)'이 활성화되어 있는지 확인해 주세요.");
+    // 익명 로그인이 활성화되지 않았을 때의 우회 처리 (Fallback)
+    console.warn("Firebase 익명 로그인이 비활성화되어 있습니다. 임시 식별자로 DB에 연동합니다.");
+    
+    let localUid = localStorage.getItem('wtr_mock_uid');
+    if(!localUid) {
+       localUid = 'anon_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
+       localStorage.setItem('wtr_mock_uid', localUid);
+    }
+    currentUser = { uid: localUid, isMock: true };
+    initDataListeners();
+    return;
   }
 
   onAuthStateChanged(auth, user => {
     if(!user) return;
     currentUser = user;
-    
-    unsubGlobal = onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'config', 'global'), snap => {
-      if(snap.exists()) {
-        globalConfig = snap.data();
-        if(!globalConfig.badWords) globalConfig.badWords = ['바보', '멍청이'];
-        document.getElementById('school-nm').textContent = globalConfig.schoolName;
-        document.getElementById('school-nm').style.color = "var(--accent3)";
-      } else {
-        setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'config', 'global'), globalConfig);
-      }
-    });
+    initDataListeners();
   });
 }
 
+function initDataListeners() {
+  if (isDataListenerInitialized) return;
+  isDataListenerInitialized = true;
+
+  unsubGlobal = onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'config', 'global'), snap => {
+    if(snap.exists()) {
+      globalConfig = snap.data();
+      if(!globalConfig.badWords) globalConfig.badWords = ['바보', '멍청이'];
+      document.getElementById('school-nm').textContent = globalConfig.schoolName;
+      document.getElementById('school-nm').style.color = "var(--accent3)";
+    } else {
+      setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'config', 'global'), globalConfig).catch(err => {
+        console.warn("초기 설정 저장 실패 (Firestore 규칙을 확인하세요):", err);
+      });
+    }
+  }, err => {
+    console.error("DB 접근 에러: Firestore의 '규칙(Rules)' 탭에서 'allow read, write: if true;' 로 설정되어 있는지 확인해 주세요.", err);
+  });
+}
+
+// 스크립트가 로드되자마자 Firebase 연동을 시작합니다.
 initFirebase();
 
 function checkDB() {
   if (!isFirebaseReady) {
-    alert("⚠️ Firebase 설정이 소스코드 내에 입력되지 않아, 데이터 저장/불러오기를 할 수 없습니다.");
+    alert("⚠️ Firebase 연동이 완료되지 않았습니다.");
     return false;
   }
   return true;
 }
 
 // ==========================================
-// 3. UTILS & TEACHER MODE (Hoisted)
+// 3. UTILS & TEACHER MODE
 // ==========================================
 function parseWords(txt) {
   return (txt || '').split('\n').map(l => l.trim()).filter(l => l && l.includes(':'))
@@ -666,7 +676,7 @@ window.startSingleGame = function(code) {
 // ==========================================
 function initLobby() {
   if(!checkDB() || !currentUser) {
-    document.getElementById('lb-list').innerHTML = '<div style="text-align:center; padding:40px; color:var(--accent2); font-weight:800;">Firebase 설정이 필요하여 멀티플레이를 할 수 없습니다.</div>';
+    document.getElementById('lb-list').innerHTML = '<div style="text-align:center; padding:40px; color:var(--accent2); font-weight:800;">Firebase 연동이 필요하여 멀티플레이를 할 수 없습니다.</div>';
     return;
   }
   const validLessons = (globalConfig.lessons || []).filter(l => parseWords(l.words).length > 0);
@@ -1106,7 +1116,7 @@ function finishGameLogic() {
 // ==========================================
 async function loadRanking() {
   if(!isFirebaseReady || !currentUser) {
-    document.getElementById('rk-body').innerHTML = '<tr><td colspan="4" style="text-align:center; padding:40px; color:var(--accent2); font-weight:800;">Firebase 설정이 필요하여 랭킹을 볼 수 없습니다.</td></tr>';
+    document.getElementById('rk-body').innerHTML = '<tr><td colspan="4" style="text-align:center; padding:40px; color:var(--accent2); font-weight:800;">Firebase 연동이 필요하여 랭킹을 볼 수 없습니다.</td></tr>';
     return;
   }
   const q = query(collection(db, 'artifacts', appId, 'public', 'data', 'scores'));
