@@ -384,58 +384,54 @@ footer {margin-top: auto; text-align: center; padding: 30px 20px 10px; color: va
 
 <script type="module">
 // ==========================================
-// 1. FIREBASE INITIALIZATION
+// 💡 [필수] 선생님의 Firebase 프로젝트 설정값
+// 웹앱을 다운로드하여 직접 사용하실 때는 이곳에
+// 선생님의 Firebase 설정 정보를 입력하셔야 합니다.
 // ==========================================
+const TEACHER_FIREBASE_CONFIG = {
+  apiKey: "AIzaSyBe99wcbru7hsyCBg0hPYPdqyd85RKEZGw",
+  authDomain: "wordtyping-41246.firebaseapp.com",
+  projectId: "wordtyping-41246",
+  storageBucket: "wordtyping-41246.firebasestorage.app",
+  messagingSenderId: "695233843018",
+  appId: "1:695233843018:web:85bedb2204e0ffcc31bbb3",
+  measurementId: "G-ZZ29Z3TJQ1"
+};
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { getFirestore, doc, setDoc, updateDoc, collection, addDoc, onSnapshot, query, getDocs, runTransaction, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const appId = typeof __app_id !== 'undefined' ? __app_id : 'word-typing-race-app';
-
 // ==========================================
-// 2. GLOBAL STATE
+// 1. GLOBAL STATE & UI FUNCTIONS (최상단 배치)
+// (Firebase 연결 전에도 버튼이 작동하도록 보장합니다)
 // ==========================================
 let currentUser = null;
-let globalConfig = { schoolName: '서울초등학교', lessons: [], badWords: ['바보', '멍청이', '시발', '씨발', '개새', '병신', '지랄', '존나', '섹스', '미친', '새끼', '창녀', '좆'] };
+let isFirebaseReady = false;
+let globalConfig = { 
+  schoolName: '서울초등학교', 
+  lessons: [{ code: 'L01', name: '기본 단어 (DB 연결 안됨)', words: 'apple : 사과\nbanana : 바나나\nschool : 학교' }], 
+  badWords: ['바보', '멍청이', '시발', '씨발', '개새', '병신', '지랄', '존나', '섹스', '미친', '새끼', '창녀', '좆'] 
+};
 let profile = JSON.parse(localStorage.getItem('wtr_profile') || 'null');
 
-let gameMode = 'single'; // single, multi
+let gameMode = 'single';
 let selLesson = null;
 let currentRoomId = null;
 let roomData = null;
 let rankData = [];
-let rankFilter = 'class'; // class, grade, all
+let rankFilter = 'class';
 
-// Listeners
 let unsubGlobal = null;
 let unsubRooms = null;
 let unsubRoom = null;
 
-// Game State
 let words = [];
 let currentQIdx = 0;
 let score = 0;
 let results = [];
 let wordStart = 0;
 let totalStart = 0;
-
-// ==========================================
-// 3. UTILS
-// ==========================================
-function parseWords(txt) {
-  return (txt || '').split('\n').map(l => l.trim()).filter(l => l && l.includes(':'))
-    .map(l => { const p = l.split(':'); return { word: p[0].trim(), meaning: p.slice(1).join(':').trim() }; })
-    .filter(w => w.word && w.meaning);
-}
-
-function isBadWord(txt) {
-  const bw = globalConfig.badWords || [];
-  return bw.some(w => w.trim() !== '' && txt.includes(w.trim()));
-}
 
 // 반 Select 옵션 채우기 (1~20반)
 const pClassSel = document.getElementById('p-class');
@@ -444,40 +440,7 @@ for(let i=1; i<=20; i++) {
   pClassSel.appendChild(opt);
 }
 
-// ==========================================
-// 4. AUTH & CONFIG LOAD (RULE 3 & RULE 1)
-// ==========================================
-async function initApp() {
-  try {
-    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-      await signInWithCustomToken(auth, __initial_auth_token);
-    } else {
-      await signInAnonymously(auth);
-    }
-  } catch(e) { console.error("Auth init error", e); }
-
-  onAuthStateChanged(auth, user => {
-    if(!user) return;
-    currentUser = user;
-    
-    // Subscribe to Global Config
-    unsubGlobal = onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'config', 'global'), snap => {
-      if(snap.exists()) {
-        globalConfig = snap.data();
-        if(!globalConfig.badWords) globalConfig.badWords = ['바보', '멍청이'];
-        document.getElementById('school-nm').textContent = globalConfig.schoolName;
-      } else {
-        // Init default
-        setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'config', 'global'), globalConfig);
-      }
-    });
-  });
-}
-initApp();
-
-// ==========================================
-// 5. NAVIGATION & ACTIONS (Exposed to window)
-// ==========================================
+// 화면 이동 함수
 window.goto = function(scrId, overrideMode) {
   if(overrideMode) gameMode = overrideMode;
   document.querySelectorAll('.scr').forEach(s => s.classList.remove('on'));
@@ -532,17 +495,110 @@ window.goHomeOrLobby = function() {
   else goto('s-lobby');
 };
 
-// ==========================================
-// 6. TEACHER MODE
-// ==========================================
 window.promptTeacher = function() {
   const pw = prompt('교사 비밀번호를 입력하세요. (초기: 1234)');
   if(pw === (localStorage.getItem('wtr_admin_pw') || '1234')) goto('s-teacher');
   else if(pw !== null) alert('비밀번호가 틀렸습니다.');
 };
 
+// ==========================================
+// 2. FIREBASE INITIALIZATION (예외 처리 강화)
+// ==========================================
+let app, auth, db;
+const appId = typeof __app_id !== 'undefined' ? __app_id : 'word-typing-race-app';
+
+function initFirebase() {
+  let config = null;
+  // 1순위: 소스코드 내 입력한 TEACHER_FIREBASE_CONFIG
+  if (TEACHER_FIREBASE_CONFIG && TEACHER_FIREBASE_CONFIG.apiKey) {
+    config = TEACHER_FIREBASE_CONFIG;
+  } 
+  // 2순위: 캔버스 환경에서 자동 주입되는 Config
+  else if (typeof __firebase_config !== 'undefined') {
+    try { config = JSON.parse(__firebase_config); } catch(e){}
+  }
+
+  // Config가 없으면 에러를 띄우지 않고, DB 연결만 비활성화 (UI는 작동하게 함)
+  if (!config || !config.apiKey) {
+    console.warn("Firebase 설정이 없습니다. 데이터가 저장되지 않습니다.");
+    document.getElementById('school-nm').textContent = "⚠️ Firebase 설정 필요";
+    document.getElementById('school-nm').style.color = "var(--accent2)";
+    return;
+  }
+
+  try {
+    app = initializeApp(config);
+    auth = getAuth(app);
+    db = getFirestore(app);
+    isFirebaseReady = true;
+
+    // 인증 및 구독 시작
+    startAuth();
+  } catch(e) {
+    console.error("Firebase 초기화 에러:", e);
+  }
+}
+
+async function startAuth() {
+  try {
+    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+      try {
+        await signInWithCustomToken(auth, __initial_auth_token);
+      } catch (customErr) {
+        console.warn("커스텀 토큰 로그인 실패, 익명 로그인으로 전환합니다.", customErr);
+        await signInAnonymously(auth);
+      }
+    } else {
+      await signInAnonymously(auth);
+    }
+  } catch(e) { 
+    console.error("Auth error", e); 
+    alert("Firebase 인증 에러: Firebase Console의 Authentication(인증) 메뉴에서 'Sign-in method(로그인 방법)' 중 '익명(Anonymous)'이 활성화되어 있는지 확인해 주세요.");
+  }
+
+  onAuthStateChanged(auth, user => {
+    if(!user) return;
+    currentUser = user;
+    
+    unsubGlobal = onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'config', 'global'), snap => {
+      if(snap.exists()) {
+        globalConfig = snap.data();
+        if(!globalConfig.badWords) globalConfig.badWords = ['바보', '멍청이'];
+        document.getElementById('school-nm').textContent = globalConfig.schoolName;
+        document.getElementById('school-nm').style.color = "var(--accent3)";
+      } else {
+        setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'config', 'global'), globalConfig);
+      }
+    });
+  });
+}
+
+initFirebase();
+
+function checkDB() {
+  if (!isFirebaseReady) {
+    alert("⚠️ Firebase 설정이 소스코드 내에 입력되지 않아, 데이터 저장/불러오기를 할 수 없습니다.");
+    return false;
+  }
+  return true;
+}
+
+// ==========================================
+// 3. UTILS & TEACHER MODE (Hoisted)
+// ==========================================
+function parseWords(txt) {
+  return (txt || '').split('\n').map(l => l.trim()).filter(l => l && l.includes(':'))
+    .map(l => { const p = l.split(':'); return { word: p[0].trim(), meaning: p.slice(1).join(':').trim() }; })
+    .filter(w => w.word && w.meaning);
+}
+
+function isBadWord(txt) {
+  const bw = globalConfig.badWords || [];
+  return bw.some(w => w.trim() !== '' && txt.includes(w.trim()));
+}
+
 window.saveGlobalConfig = function() {
-  if(!currentUser) return;
+  if(!checkDB()) return;
   const sn = document.getElementById('t-school').value.trim();
   const bwStr = document.getElementById('t-badwords').value;
   const bw = bwStr ? bwStr.split(',').map(w=>w.trim()).filter(w=>w) : [];
@@ -568,6 +624,7 @@ window.renderTeacherLessons = function() {
 };
 
 window.addLesson = function() {
+  if(!checkDB()) return;
   const code = document.getElementById('t-new-code').value.trim().toUpperCase();
   const name = document.getElementById('t-new-name').value.trim();
   if(!code) return alert('코드를 입력하세요.');
@@ -580,6 +637,7 @@ window.addLesson = function() {
 };
 
 window.deleteLesson = function(idx) {
+  if(!checkDB()) return;
   if(!confirm('삭제할까요?')) return;
   globalConfig.lessons.splice(idx, 1);
   document.getElementById('t-edit-panel').style.display='none';
@@ -587,7 +645,6 @@ window.deleteLesson = function(idx) {
   renderTeacherLessons();
 };
 
-let currentEditIdx = -1;
 window.editLesson = function(idx) {
   currentEditIdx = idx;
   const l = globalConfig.lessons[idx];
@@ -598,6 +655,7 @@ window.editLesson = function(idx) {
 };
 
 window.saveLessonWords = function() {
+  if(!checkDB()) return;
   if(currentEditIdx < 0) return;
   globalConfig.lessons[currentEditIdx].words = document.getElementById('t-edit-words').value;
   setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'config', 'global'), globalConfig).then(() => {
@@ -606,9 +664,6 @@ window.saveLessonWords = function() {
   });
 };
 
-// ==========================================
-// 7. SINGLEPLAYER SELECT
-// ==========================================
 window.renderLessonSelect = function() {
   const valid = (globalConfig.lessons || []).filter(l => parseWords(l.words).length > 0);
   const cont = document.getElementById('ls-grid');
@@ -628,10 +683,13 @@ window.startSingleGame = function(code) {
 };
 
 // ==========================================
-// 8. MULTIPLAYER LOBBY
+// 4. MULTIPLAYER LOBBY
 // ==========================================
 function initLobby() {
-  if(!currentUser) return;
+  if(!checkDB() || !currentUser) {
+    document.getElementById('lb-list').innerHTML = '<div style="text-align:center; padding:40px; color:var(--accent2); font-weight:800;">Firebase 설정이 필요하여 멀티플레이를 할 수 없습니다.</div>';
+    return;
+  }
   const validLessons = (globalConfig.lessons || []).filter(l => parseWords(l.words).length > 0);
   document.getElementById('lb-lesson').innerHTML = validLessons.map(l => `<option value="${l.code}">${l.code} - ${l.name||''}</option>`).join('');
   document.getElementById('lb-name').value = `${profile.name}의 방`;
@@ -667,7 +725,7 @@ function initLobby() {
 }
 
 window.createRoom = async function() {
-  if(!currentUser) return;
+  if(!checkDB() || !currentUser) return;
   const name = document.getElementById('lb-name').value.trim();
   const type = document.getElementById('lb-type').value;
   const lessonCode = document.getElementById('lb-lesson').value;
@@ -695,7 +753,7 @@ window.createRoom = async function() {
 };
 
 window.joinRoom = async function(id) {
-  if(!currentUser) return;
+  if(!checkDB() || !currentUser) return;
   try {
     await runTransaction(db, async (t) => {
       const ref = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', id);
@@ -720,9 +778,6 @@ window.joinRoom = async function(id) {
   } catch(e) { alert(e); }
 };
 
-// ==========================================
-// 9. ROOM WAITING
-// ==========================================
 function subscribeRoom() {
   if(unsubRoom) unsubRoom();
   unsubRoom = onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'rooms', currentRoomId), snap => {
@@ -731,7 +786,7 @@ function subscribeRoom() {
       selLesson = globalConfig.lessons.find(l => l.code === roomData.lessonCode);
       renderRoomUI();
       if(roomData.status === 'playing') initGameLogic();
-      if(roomData.status === 'finished') finishGameLogic(); // 외부에서 끝났을 때
+      if(roomData.status === 'finished') finishGameLogic();
     } else {
       alert('방이 삭제되었습니다.'); goto('s-lobby');
     }
@@ -744,7 +799,6 @@ function renderRoomUI() {
   document.getElementById('rm-badge').textContent = roomData.type==='1v1'?'1:1 개인전':roomData.type==='team'?'A vs B 팀전':'반 대항전';
   document.getElementById('rm-badge').className = `badge ${roomData.type==='1v1'?'b-1v1':roomData.type==='team'?'b-team':'b-class'}`;
 
-  // Team Select visibility
   document.getElementById('rm-team-sel').style.display = roomData.type === 'team' ? 'block' : 'none';
   const myP = roomData.players.find(p => p.userId === currentUser.uid);
   if(myP && roomData.type === 'team') {
@@ -754,7 +808,6 @@ function renderRoomUI() {
     document.getElementById('btn-team-b').style.color = myP.team==='B' ? '#fff' : '#3b82f6';
   }
 
-  // Players
   document.getElementById('rm-players').innerHTML = roomData.players.map(p => `
     <div class="player-box ${p.userId === currentUser.uid ? 'me' : ''}">
       <div style="display:flex; align-items:center; gap:12px;">
@@ -772,7 +825,6 @@ function renderRoomUI() {
     </div>
   `).join('');
 
-  // Buttons
   const isHost = roomData.hostId === currentUser.uid;
   const allReady = roomData.players.every(p => p.isReady);
   const btnReady = document.getElementById('rm-btn-ready');
@@ -797,7 +849,7 @@ function renderRoomUI() {
 
 window.leaveRoom = async function() {
   if(unsubRoom) { unsubRoom(); unsubRoom = null; }
-  if(currentUser && currentRoomId) {
+  if(isFirebaseReady && currentUser && currentRoomId) {
     try {
       await runTransaction(db, async (t) => {
         const ref = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', currentRoomId);
@@ -819,7 +871,7 @@ window.leaveRoom = async function() {
 };
 
 window.toggleReady = async function() {
-  if(!currentUser || !currentRoomId) return;
+  if(!checkDB() || !currentUser || !currentRoomId) return;
   try {
     await runTransaction(db, async (t) => {
       const ref = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', currentRoomId);
@@ -833,7 +885,7 @@ window.toggleReady = async function() {
 };
 
 window.changeTeam = async function(tm) {
-  if(!currentUser || !currentRoomId) return;
+  if(!checkDB() || !currentUser || !currentRoomId) return;
   try {
     await runTransaction(db, async (t) => {
       const ref = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', currentRoomId);
@@ -860,7 +912,7 @@ window.startMultiGame = async function() {
 };
 
 // ==========================================
-// 10. GAME LOGIC
+// 5. GAME PLAY LOGIC
 // ==========================================
 function initGameLogic() {
   if(!selLesson) return;
@@ -888,7 +940,7 @@ function initGameLogic() {
 
   goto('s-game');
   renderQuestion();
-  renderMultiProgressUI(); // initial draw
+  renderMultiProgressUI();
 }
 
 function renderQuestion() {
@@ -963,7 +1015,7 @@ window.skipWord = function() {
 };
 
 async function syncMultiProgress(isFinished = false) {
-  if(gameMode !== 'multi' || !currentRoomId || !currentUser) return;
+  if(gameMode !== 'multi' || !currentRoomId || !currentUser || !isFirebaseReady) return;
   const progress = Math.round((currentQIdx / words.length) * 100);
   try {
     await runTransaction(db, async (t) => {
@@ -985,8 +1037,8 @@ function renderMultiProgressUI() {
   const cont = document.getElementById('multi-progress-container');
   let html = '';
   if(roomData.type === '1v1') {
-      const me = roomData.players.find(p => p.userId === currentUser.uid);
-      const opp = roomData.players.find(p => p.userId !== currentUser.uid);
+      const me = roomData.players.find(p => p.userId === currentUser?.uid);
+      const opp = roomData.players.find(p => p.userId !== currentUser?.uid);
       html += `<div class="prog-bg"><div class="prog-fill bg-blue" style="width:${me?.progress||0}%"></div><span class="prog-lbl">${me?.name||'나'} (나)</span></div>`;
       if(opp) html += `<div class="prog-bg"><div class="prog-fill bg-red" style="width:${opp.progress||0}%"></div><span class="prog-lbl">${opp.name||'상대'} (상대)</span></div>`;
   } else if (roomData.type === 'team') {
@@ -1007,23 +1059,23 @@ function renderMultiProgressUI() {
   cont.innerHTML = html;
 }
 
-// React to Multi Progress changes real-time
 setInterval(() => {
   if(gameMode === 'multi' && document.getElementById('s-game').classList.contains('on')) {
     renderMultiProgressUI();
   }
 }, 1000);
 
-
 async function handleGameEnd() {
   document.getElementById('game-play-area').style.display = 'none';
   if(gameMode === 'single') {
-    try {
-      await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'scores'), {
-        userId: currentUser.uid, name: profile.name, grade: profile.grade, classNum: profile.classNum, number: profile.number,
-        lessonCode: selLesson.code, score, timestamp: Date.now(), totalTime: (Date.now() - totalStart) / 1000
-      });
-    } catch(e) { console.error(e); }
+    if(isFirebaseReady && currentUser) {
+      try {
+        await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'scores'), {
+          userId: currentUser.uid, name: profile.name, grade: profile.grade, classNum: profile.classNum, number: profile.number,
+          lessonCode: selLesson.code, score, timestamp: Date.now(), totalTime: (Date.now() - totalStart) / 1000
+        });
+      } catch(e) { console.error(e); }
+    }
     finishGameLogic();
   } else {
     document.getElementById('game-wait-area').style.display = 'block';
@@ -1041,8 +1093,8 @@ function finishGameLogic() {
   if(gameMode === 'multi' && roomData) {
     msgEl.style.display = 'inline-block';
     if(roomData.type === '1v1') {
-       const me = roomData.players.find(p=>p.userId === currentUser.uid);
-       const opp = roomData.players.find(p=>p.userId !== currentUser.uid);
+       const me = roomData.players.find(p=>p.userId === currentUser?.uid);
+       const opp = roomData.players.find(p=>p.userId !== currentUser?.uid);
        if(me && opp) {
          if(me.score > opp.score) { msgEl.innerHTML = '<span style="color:var(--success)">당신의 승리! 🎉</span>'; }
          else if(me.score < opp.score) { msgEl.innerHTML = '<span style="color:var(--accent2)">상대의 승리 😢</span>'; }
@@ -1051,7 +1103,7 @@ function finishGameLogic() {
     } else if(roomData.type === 'team') {
        const a = roomData.players.filter(p=>p.team==='A').reduce((s,p)=>s+p.score,0);
        const b = roomData.players.filter(p=>p.team==='B').reduce((s,p)=>s+p.score,0);
-       const myT = roomData.players.find(p=>p.userId===currentUser.uid)?.team;
+       const myT = roomData.players.find(p=>p.userId===currentUser?.uid)?.team;
        if(a > b) msgEl.innerHTML = `<span style="color:${myT==='A'?'var(--success)':'var(--accent2)'}">A팀 승리! (${a} vs ${b})</span>`;
        else if(b > a) msgEl.innerHTML = `<span style="color:${myT==='B'?'var(--success)':'var(--accent2)'}">B팀 승리! (${b} vs ${a})</span>`;
        else msgEl.innerHTML = `<span>무승부 (${a} vs ${b})</span>`;
@@ -1071,10 +1123,13 @@ function finishGameLogic() {
 }
 
 // ==========================================
-// 11. RANKING
+// 6. RANKING
 // ==========================================
 async function loadRanking() {
-  if(!currentUser) return;
+  if(!isFirebaseReady || !currentUser) {
+    document.getElementById('rk-body').innerHTML = '<tr><td colspan="4" style="text-align:center; padding:40px; color:var(--accent2); font-weight:800;">Firebase 설정이 필요하여 랭킹을 볼 수 없습니다.</td></tr>';
+    return;
+  }
   const q = query(collection(db, 'artifacts', appId, 'public', 'data', 'scores'));
   try {
     const snap = await getDocs(q);
@@ -1091,7 +1146,7 @@ function populateRankingFilters() {
 
   const grades = [...new Set(rankData.map(s=>String(s.grade)))].sort();
   document.getElementById('rk-grade').innerHTML = '<option value="">학년 선택</option>' + grades.map(g => `<option value="${g}">${g}학년</option>`).join('');
-  document.getElementById('rk-class').innerHTML = '<option value="">반 선택</option>'; // trigger on grade change if needed
+  document.getElementById('rk-class').innerHTML = '<option value="">반 선택</option>'; 
   
   document.getElementById('rk-grade').onchange = (e) => {
     const g = e.target.value;
@@ -1125,7 +1180,7 @@ window.renderRanking = function() {
   } else if (rankFilter === 'class' && selGr && selCls) {
     filtered = filtered.filter(s => String(s.grade) === selGr && String(s.classNum) === selCls);
   } else if (rankFilter !== 'all') {
-    filtered = []; // 조건 불충족
+    filtered = [];
   }
 
   const best = {};
