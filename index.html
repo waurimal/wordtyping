@@ -211,21 +211,36 @@ footer {margin-top: auto; text-align: center; padding: 30px 20px 10px; color: va
       </div>
       <div class="br"><button class="btn bt" onclick="saveGlobalConfig()">설정 저장</button></div>
     </div>
+    
+    <!-- 새 단원 추가 UI 변경 (단어 바로 입력 기능 추가) -->
     <div class="card tc">
-      <div class="ct t">단원 관리</div>
-      <div id="t-lessons" class="lesson-list"></div>
-      <div style="margin-top:20px; padding-top:20px; border-top:1px solid rgba(0,0,0,0.1);">
-        <div class="fr2">
-          <div class="fg"><label>단원 코드</label><input type="text" id="t-new-code" placeholder="L01" maxlength="6"/></div>
-          <div class="fg"><label>단원 이름</label><input type="text" id="t-new-name" placeholder="단원 이름"/></div>
-        </div>
-        <button class="btn bt" onclick="addLesson()">+ 단원 추가</button>
+      <div class="ct t">새 단원 추가</div>
+      <div class="fr2">
+        <div class="fg"><label>단원 코드</label><input type="text" id="t-new-code" placeholder="예: L01" maxlength="6"/></div>
+        <div class="fg"><label>단원 이름</label><input type="text" id="t-new-name" placeholder="예: 1단원 기초 영단어"/></div>
       </div>
+      <div class="fg">
+        <label>단어 입력 (영어 : 뜻 형식으로 한 줄에 하나씩)</label>
+        <textarea id="t-new-words" placeholder="apple : 사과&#10;banana : 바나나&#10;school : 학교"></textarea>
+      </div>
+      <div class="br"><button class="btn bt" onclick="addLesson()">+ 단원 추가 및 저장</button></div>
     </div>
+
+    <!-- 등록된 단원 관리 -->
+    <div class="card tc">
+      <div class="ct t">등록된 단원 관리 (클릭하여 수정)</div>
+      <div id="t-lessons" class="lesson-list"></div>
+    </div>
+
+    <!-- 단원 수정 패널 -->
     <div class="card tc" id="t-edit-panel" style="display:none; border-color:var(--accent3);">
-      <div class="ct" style="color:var(--accent3)">단어 편집 (<span id="t-edit-lbl"></span>)</div>
-      <textarea id="t-edit-words" placeholder="apple : 사과&#10;banana : 바나나"></textarea>
-      <div class="br"><button class="btn bv" onclick="saveLessonWords()">단어 저장 ✓</button></div>
+      <div class="ct" style="color:var(--accent3)">단원 수정 (<span id="t-edit-lbl"></span>)</div>
+      <div class="fg"><label>단원 이름</label><input type="text" id="t-edit-name" placeholder="단원 이름"/></div>
+      <div class="fg">
+        <label>단어 목록 (영어 : 뜻 형식으로 한 줄에 하나씩)</label>
+        <textarea id="t-edit-words" placeholder="apple : 사과&#10;banana : 바나나"></textarea>
+      </div>
+      <div class="br"><button class="btn bv" onclick="saveLessonWords()">수정 내용 저장 ✓</button></div>
     </div>
     <div class="br"><button class="btn bs" onclick="goto('s-home')">← 메인으로</button></div>
   </div>
@@ -594,13 +609,13 @@ window.saveGlobalConfig = function() {
   
   globalConfig.schoolName = sn;
   globalConfig.badWords = bw;
-  setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'config', 'global'), globalConfig).then(() => alert('저장되었습니다.'));
+  setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'config', 'global'), globalConfig).then(() => alert('설정이 저장되었습니다.'));
 };
 
 window.renderTeacherLessons = function() {
   const cont = document.getElementById('t-lessons');
   if(!globalConfig.lessons || globalConfig.lessons.length===0) {
-    cont.innerHTML = '<div class="hint">등록된 단원이 없습니다.</div>'; return;
+    cont.innerHTML = '<div class="hint" style="padding:10px 0;">등록된 단원이 없습니다.</div>'; return;
   }
   cont.innerHTML = globalConfig.lessons.map((l, i) => `
     <div class="lesson-row" onclick="editLesson(${i})">
@@ -616,28 +631,43 @@ window.addLesson = function() {
   if(!checkDB()) return;
   const code = document.getElementById('t-new-code').value.trim().toUpperCase();
   const name = document.getElementById('t-new-name').value.trim();
-  if(!code) return alert('코드를 입력하세요.');
+  const words = document.getElementById('t-new-words').value;
+  
+  if(!code) return alert('단원 코드를 입력하세요.');
   if(!globalConfig.lessons) globalConfig.lessons = [];
-  if(globalConfig.lessons.find(l=>l.code===code)) return alert('이미 존재하는 코드입니다.');
-  globalConfig.lessons.push({code, name, words:''});
-  document.getElementById('t-new-code').value = ''; document.getElementById('t-new-name').value = '';
-  setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'config', 'global'), globalConfig);
-  renderTeacherLessons();
+  if(globalConfig.lessons.find(l=>l.code===code)) return alert('이미 존재하는 단원 코드입니다. 다른 코드를 사용해주세요.');
+  
+  globalConfig.lessons.push({code, name, words});
+  
+  // 입력 폼 초기화
+  document.getElementById('t-new-code').value = ''; 
+  document.getElementById('t-new-name').value = '';
+  document.getElementById('t-new-words').value = '';
+  
+  setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'config', 'global'), globalConfig).then(() => {
+    alert('새 단원이 성공적으로 추가되었습니다.');
+    renderTeacherLessons();
+  }).catch(e => {
+    console.error(e); alert('단원 추가에 실패했습니다.');
+  });
 };
 
 window.deleteLesson = function(idx) {
   if(!checkDB()) return;
-  if(!confirm('삭제할까요?')) return;
+  if(!confirm('이 단원을 삭제하시겠습니까?')) return;
   globalConfig.lessons.splice(idx, 1);
   document.getElementById('t-edit-panel').style.display='none';
-  setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'config', 'global'), globalConfig);
-  renderTeacherLessons();
+  setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'config', 'global'), globalConfig).then(() => {
+    renderTeacherLessons();
+  });
 };
 
+let currentEditIdx = -1;
 window.editLesson = function(idx) {
   currentEditIdx = idx;
   const l = globalConfig.lessons[idx];
   document.getElementById('t-edit-lbl').textContent = l.code;
+  document.getElementById('t-edit-name').value = l.name || '';
   document.getElementById('t-edit-words').value = l.words || '';
   document.getElementById('t-edit-panel').style.display = 'block';
   document.getElementById('t-edit-panel').scrollIntoView({behavior:'smooth'});
@@ -646,10 +676,16 @@ window.editLesson = function(idx) {
 window.saveLessonWords = function() {
   if(!checkDB()) return;
   if(currentEditIdx < 0) return;
+  
+  globalConfig.lessons[currentEditIdx].name = document.getElementById('t-edit-name').value.trim();
   globalConfig.lessons[currentEditIdx].words = document.getElementById('t-edit-words').value;
+  
   setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'config', 'global'), globalConfig).then(() => {
-    alert('단어가 저장되었습니다.');
+    alert('수정 내용이 저장되었습니다.');
+    document.getElementById('t-edit-panel').style.display = 'none';
     renderTeacherLessons();
+  }).catch(e => {
+    console.error(e); alert('단원 수정에 실패했습니다.');
   });
 };
 
