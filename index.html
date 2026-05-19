@@ -286,12 +286,6 @@ textarea{min-height:180px;resize:vertical;font-family:var(--mono);font-size:15px
 </style>
 </head>
 <body>
-<script>
-// =========================================================
-// 🚀 [필수 설정] 교사님이 발급받은 Apps Script 웹앱 URL을 아래에 붙여넣으세요!
-// =========================================================
-const TEACHER_SHEETS_URL = "https://script.google.com/macros/s/AKfycbxCcVn-591aZ8L5cFBZwg2VnkNJzZMw_ox1yPCj6OpVZL4YIiIT-yIYRWq_nyYxazld/exec"; 
-</script>
 <div class="wrap">
 
 <!-- 헤더 -->
@@ -299,9 +293,7 @@ const TEACHER_SHEETS_URL = "https://script.google.com/macros/s/AKfycbxCcVn-591aZ
   <h1>
     <!-- 왼쪽 키보드 아이콘 (Accent 컬러) -->
     <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2" ry="2"/><path d="M6 8h.01"/><path d="M10 8h.01"/><path d="M14 8h.01"/><path d="M18 8h.01"/><path d="M6 12h.01"/><path d="M10 12h.01"/><path d="M14 12h.01"/><path d="M18 12h.01"/><path d="M7 16h10"/></svg>
-    
     <span class="hdr-title-text">Word Typing Race</span>
-    
     <!-- 오른쪽 키보드 아이콘 (Accent3 컬러) -->
     <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="var(--accent3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2" ry="2"/><path d="M6 8h.01"/><path d="M10 8h.01"/><path d="M14 8h.01"/><path d="M18 8h.01"/><path d="M6 12h.01"/><path d="M10 12h.01"/><path d="M14 12h.01"/><path d="M18 12h.01"/><path d="M7 16h10"/></svg>
   </h1>
@@ -396,16 +388,6 @@ const TEACHER_SHEETS_URL = "https://script.google.com/macros/s/AKfycbxCcVn-591aZ
     </div>
   </div>
 
-  <!-- Google Sheets -->
-  <div class="card tc">
-    <div class="ct t">Google Sheets 랭킹 연동</div>
-    <div class="fg">
-      <label>Apps Script 웹앱 URL</label>
-      <input type="text" id="sheets-url" placeholder="https://script.google.com/macros/s/.../exec"/>
-    </div>
-    <p class="hint">결과 저장 및 순위 조회에 사용되는 필수 DB 주소입니다.</p>
-  </div>
-
   <!-- 비밀번호 변경 -->
   <div class="card tc">
     <div class="ct t">비밀번호 변경</div>
@@ -416,16 +398,15 @@ const TEACHER_SHEETS_URL = "https://script.google.com/macros/s/AKfycbxCcVn-591aZ
     <div class="br"><button class="btn bs" onclick="changePw()">변경 적용</button></div>
   </div>
 
-  <!-- 서버 연동 안내 & 다운로드 영역 -->
+  <!-- Firebase 서버 연동 -->
   <div class="card" style="background: #ffffff; border: 1px solid rgba(2,132,199,.2); box-shadow:0 12px 30px rgba(2,132,199,0.08);">
     <div style="font-size: 16px; line-height: 1.8; color: var(--text); text-align: center; margin-bottom: 28px; font-weight:500;">
-      <strong style="color:var(--accent); font-size:20px; display:block; margin-bottom:12px; font-weight:800;">[☁️ 서버에 설정 적용하는 방법]</strong>
-      단원과 구글 시트 설정을 모두 마쳤다면, 아래 버튼을 눌러 설정 파일(<span style="font-family:var(--mono); color:var(--accent); font-weight:800;">config.json</span>)을 다운로드하세요.<br>
-      받은 <strong>config.json</strong> 파일을 서버의 HTML 파일과 <strong>같은 위치(폴더)</strong>에 업로드(덮어쓰기)하면 학생들에게 즉시 일괄 적용됩니다.
+      <strong style="color:var(--accent); font-size:20px; display:block; margin-bottom:12px; font-weight:800;">[☁️ Firebase 서버에 설정 반영하기]</strong>
+      추가/수정한 단원과 학교명 등의 모든 설정을 서버에 최종 업로드합니다.<br>버튼을 누르면 학생들에게 즉시 반영됩니다.
     </div>
     <div style="display:flex; gap:16px; width: 100%;">
       <button class="btn bs" onclick="goto('s-mode')">← 나가기</button>
-      <button class="btn bp" onclick="downloadConfig()" style="margin-left:auto;">⬇️ 설정 파일 (config.json) 다운로드</button>
+      <button class="btn bp" onclick="syncConfigToServer()" style="margin-left:auto;">☁️ 설정 서버에 저장하기</button>
     </div>
   </div>
 </div>
@@ -451,10 +432,27 @@ const TEACHER_SHEETS_URL = "https://script.google.com/macros/s/AKfycbxCcVn-591aZ
   <div class="card">
     <div class="ct">학생 정보 입력</div>
     <div class="fr4">
-      <div class="fg" style="margin-bottom:0"><label>학년</label><input type="number" id="p-grade" placeholder="3" min="1" max="6"/></div>
-      <div class="fg" style="margin-bottom:0"><label>반</label><input type="number" id="p-class" placeholder="2" min="1" max="20"/></div>
-      <div class="fg" style="margin-bottom:0"><label>번호</label><input type="number" id="p-num" placeholder="15" min="1" max="100"/></div>
-      <div class="fg" style="margin-bottom:0"><label>이름</label><input type="text" id="p-name" placeholder="홍길동"/></div>
+      <div class="fg" style="margin-bottom:0">
+        <label>학년</label>
+        <div class="select-wrap">
+          <select id="p-grade">
+            <option value="">선택</option>
+            <option value="1">1학년</option><option value="2">2학년</option><option value="3">3학년</option>
+            <option value="4">4학년</option><option value="5">5학년</option><option value="6">6학년</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg" style="margin-bottom:0">
+        <label>반</label>
+        <div class="select-wrap">
+          <select id="p-class">
+            <option value="">선택</option>
+            <!-- JS로 1~20 자동 채움 -->
+          </select>
+        </div>
+      </div>
+      <div class="fg" style="margin-bottom:0"><label>번호</label><input type="number" id="p-num" placeholder="예: 15" min="1" max="100"/></div>
+      <div class="fg" style="margin-bottom:0"><label>이름</label><input type="text" id="p-name" placeholder="홍길동" maxlength="10"/></div>
     </div>
     <div class="br" style="margin-top:36px;">
       <button class="btn bs" onclick="goto('s-lesson')">← 단원 변경</button>
@@ -467,15 +465,15 @@ const TEACHER_SHEETS_URL = "https://script.google.com/macros/s/AKfycbxCcVn-591aZ
 <div class="scr" id="s-game">
   <div class="prog-bg"><div class="prog-fill" id="prog" style="width:0%"></div></div>
   <div class="sbar">
-    <div class="si"><div class="sv" id="sv-score">0</div><div class="sl">점수</div></div>
-    <div class="si"><div class="sv" id="sv-time">0.0s</div><div class="sl">현재 시간</div></div>
-    <div class="si"><div class="sv" id="sv-left">--</div><div class="sl">남은 문제</div></div>
+    <div class="si"><div class="sv" id="sv-score">0</div><div class="sl">SCORE</div></div>
+    <div class="si"><div class="sv" id="sv-time">0.0s</div><div class="sl">TIME</div></div>
+    <div class="si"><div class="sv" id="sv-left">--</div><div class="sl">LEFT</div></div>
   </div>
   <div class="card gc" id="game-card" style="padding:50px 32px;">
     <div class="qcnt" id="qcnt">01 / 10</div>
     <div class="qmean" id="qmean">—</div>
     <div class="qhint" id="qhint">_ _ _ _ _</div>
-    <input class="tinput" id="tinput" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="타이핑하세요..."/>
+    <input class="tinput" id="tinput" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="타이핑하세요..." onpaste="return false;" ondrop="return false;"/>
     <div style="font-size:16px;color:var(--muted);text-align:center;margin-bottom:32px; letter-spacing:1px; font-weight:800;">Enter 키로 제출 · 대소문자 구분 없음</div>
     <div style="text-align:center;">
       <button class="btn bs" onclick="skipWord()" style="padding:14px 36px; font-size:15px; border-radius:99px; box-shadow:0 4px 12px rgba(0,0,0,0.05);">⏭️ 단어 건너뛰기 (Skip)</button>
@@ -593,52 +591,183 @@ const TEACHER_SHEETS_URL = "https://script.google.com/macros/s/AKfycbxCcVn-591aZ
 </footer>
 
 </div><!-- /wrap -->
+
+<!-- Firebase Module Script -->
+<script type="module">
+const TEACHER_FIREBASE_CONFIG = {
+  apiKey: "AIzaSyBe99wcbru7hsyCBg0hPYPdqyd85RKEZGw",
+  authDomain: "wordtyping-41246.firebaseapp.com",
+  projectId: "wordtyping-41246",
+  storageBucket: "wordtyping-41246.firebasestorage.app",
+  messagingSenderId: "695233843018",
+  appId: "1:695233843018:web:85bedb2204e0ffcc31bbb3",
+  measurementId: "G-ZZ29Z3TJQ1"
+};
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { getFirestore, doc, setDoc, collection, addDoc, onSnapshot, query, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+const app = initializeApp(TEACHER_FIREBASE_CONFIG);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const appId = 'word-race';
+
+let currentUser = null;
+let isConfigLoaded = false;
+
+// 익명 로그인 시도 (실패해도 진행)
+signInAnonymously(auth).catch(e => {
+  console.warn("익명 로그인이 비활성화되어 있습니다. 인증 없이 DB 연동을 시도합니다.", e);
+  loadGlobalConfig(); 
+});
+
+onAuthStateChanged(auth, user => {
+  currentUser = user;
+  if(user) loadGlobalConfig();
+});
+
+function loadGlobalConfig() {
+  if (isConfigLoaded) return;
+  onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'config', 'global'), snap => {
+    if(snap.exists()) {
+      const data = snap.data();
+      window.globalConfig = data;
+      window.lessons = data.lessons || [];
+      document.getElementById('school-nm').textContent = data.school || '';
+      
+      if(document.getElementById('s-teacher').classList.contains('on')){
+        window.renderLessonList();
+      }
+    } else {
+      const defaultData = { school: 'OO초등학교', lessons: [] };
+      setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'config', 'global'), defaultData);
+    }
+    isConfigLoaded = true;
+  }, err => {
+    console.error("DB 읽기 에러: Firestore 규칙(Rules) 설정이 올바른지 확인하세요.", err);
+  });
+}
+
+// 윈도우 전역 함수 매핑 (HTML onclick 이벤트를 위함)
+window.syncConfigToServer = function() {
+  const school = document.getElementById('school-input').value.trim();
+  if(window.editIdx >= 0) window.lessons[window.editIdx].words = document.getElementById('word-input').value.trim();
+  
+  setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'config', 'global'), {
+    school: school,
+    lessons: window.lessons
+  }).then(() => {
+    alert("☁️ Firebase 서버에 정상적으로 저장되었습니다!");
+    window.goto('s-mode');
+  }).catch(e => {
+    alert("저장 실패: " + e.message);
+  });
+};
+
+window.saveToFirebase = async function(s) {
+  const el = document.getElementById('ss-wrap');
+  if(!window.player.grade || !window.player.class || !window.player.number || !window.player.name || !window.selLesson){
+    el.innerHTML='<div class="ss err">✗ 저장 실패: 학생 정보 또는 단원 정보가 없습니다.</div>';
+    return;
+  }
+  el.innerHTML='<div class="ss">⏳ Firebase 서버에 점수 전송 중...</div>';
+  
+  try {
+    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'scores'), {
+      userId: currentUser ? currentUser.uid : 'anon',
+      name: window.player.name,
+      grade: Number(window.player.grade),
+      classNum: Number(window.player.class),
+      number: Number(window.player.number),
+      lessonCode: window.selLesson.code,
+      score: s.ts,
+      correct: s.cc,
+      wrong: s.wc,
+      totalTime: parseFloat(s.totalTime),
+      avgTime: parseFloat(s.avg),
+      timestamp: Date.now()
+    });
+    el.innerHTML='<div class="ss ok">✓ 서버 기록 전송 완료!</div>';
+  } catch(e) {
+    el.innerHTML='<div class="ss err">✗ 저장 실패: ' + e.message + '</div>';
+  }
+};
+
+window.loadRankData = async function() {
+  const body = document.getElementById('rank-body');
+  body.innerHTML='<div class="rank-loading"><span class="spinner"></span>순위 데이터를 불러오는 중...</div>';
+  
+  try {
+    const q = query(collection(db, 'artifacts', appId, 'public', 'data', 'scores'));
+    const snap = await getDocs(q);
+    window.rankData = [];
+    
+    snap.forEach(d => {
+      const data = d.data();
+      // 기존 프로그램의 테이블 렌더링 형식에 맞게 변환
+      window.rankData.push({
+        '학년': String(data.grade),
+        '반': String(data.classNum),
+        '번호': String(data.number),
+        '이름': data.name,
+        '점수': data.score,
+        '단원': data.lessonCode
+      });
+    });
+
+    const grades=[...new Set(window.rankData.map(r=>String(r['학년']||'')).filter(Boolean))].sort((a,b)=>Number(a)-Number(b));
+    const gs=document.getElementById('sel-grade');
+    const gs2=document.getElementById('sel-grade2');
+    
+    [gs,gs2].forEach(s=>{
+      s.innerHTML='<option value="">-- 학년 선택 --</option>'+grades.map(g=>`<option value="${g}">${g}학년</option>`).join('');
+    });
+
+    if(window.lastScore) {
+      if([...gs.options].some(o => o.value === String(window.lastScore.grade))) gs.value = String(window.lastScore.grade);
+      if([...gs2.options].some(o => o.value === String(window.lastScore.grade))) {
+        gs2.value = String(window.lastScore.grade);
+        window.onGrade2Change(false);
+        const cs = document.getElementById('sel-class');
+        if([...cs.options].some(o => o.value === String(window.lastScore.class))) cs.value = String(window.lastScore.class);
+      }
+    }
+    window.renderRankTable();
+  } catch(e) {
+    body.innerHTML=`<div class="rank-empty">❌ 데이터를 불러오지 못했습니다.<br><small style="color:var(--muted)">${e.message}</small></div>`;
+  }
+};
+</script>
+
 <script>
 // ── Storage Keys (백업 및 비밀번호용) ──
-const K_LESSONS='wtr_lessons', K_URL='wtr_url', K_PW='wtr_pw', K_SCHOOL='wtr_school';
+const K_PW='wtr_pw';
 
 // ── State ──
-let lessons=[], editIdx=-1, selLesson=null;
-let words=[], player={}, queue=[], current=0, results=[];
-let qStart=0, totalStart=0, timer=null;
-let rankData=[], rankTab='class', rankLesson='', lastScore=null;
+window.lessons=[]; 
+window.editIdx=-1; 
+window.selLesson=null;
+window.words=[]; 
+window.player={}; 
+window.queue=[]; 
+window.current=0; 
+window.results=[];
+window.qStart=0; 
+window.totalStart=0; 
+window.timer=null;
+window.rankData=[]; 
+window.rankTab='class'; 
+window.rankLesson=''; 
+window.lastScore=null;
+window.globalConfig = { school: '', lessons: [] };
 
-// ── 서버 연동 전역 변수 ──
-let isConfigLoaded = false;
-let globalConfig = { school: '', sheetsUrl: '', lessons: [] };
-
-// URL 로직
-function getAppUrl() {
-  return isConfigLoaded ? globalConfig.sheetsUrl : (localStorage.getItem(K_URL) || '');
+// 반 Select 옵션 1~20 자동 채우기
+const pClassSel = document.getElementById('p-class');
+for(let i=1; i<=20; i++) {
+  const opt = document.createElement('option'); opt.value = i; opt.textContent = i + '반';
+  pClassSel.appendChild(opt);
 }
-
-// ── 데이터 로딩 (서버의 config.json 직접 가져오기) ──
-async function initAppConfig() {
-  try {
-    const res = await fetch('config.json?t=' + new Date().getTime(), { cache: 'no-store' });
-    if(res.ok) {
-      const data = await res.json();
-      globalConfig = data;
-      isConfigLoaded = true;
-      
-      lessons = data.lessons || [];
-      document.getElementById('school-nm').textContent = data.school || '';
-      return;
-    }
-  } catch(e) {
-    console.log('config.json 로드 실패, 백업 스토리지 사용');
-  }
-  
-  // 백업
-  try{ lessons=JSON.parse(localStorage.getItem(K_LESSONS)||'[]'); }catch{ lessons=[]; }
-  globalConfig.school = localStorage.getItem(K_SCHOOL)||'';
-  globalConfig.sheetsUrl = localStorage.getItem(K_URL)||'';
-  document.getElementById('school-nm').textContent = globalConfig.school;
-}
-
-window.addEventListener('DOMContentLoaded', () => {
-  initAppConfig();
-});
 
 // ── Helpers ──
 function parseWords(txt){
@@ -648,7 +777,7 @@ function parseWords(txt){
 }
 function safeNum(v){ const n=Number(v); return isNaN(n)?0:n; }
 
-function goto(id){
+window.goto = function(id){
   document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
   const target = document.getElementById(id);
   target.classList.add('on');
@@ -657,112 +786,91 @@ function goto(id){
   if(id==='s-login'||id==='s-teacher'){ sub.textContent='교사 설정 모드'; sub.style.color='var(--teacher)';}
   else if(id==='s-ranking'){ sub.textContent='🏆 실시간 랭킹 보드'; sub.style.color='var(--accent3)';}
   else{ sub.textContent='영어 단어 타이핑 게임'; sub.style.color='';}
-}
+};
 
 // ── 교사 로그인 ──
-function doLogin(){
+window.doLogin = function(){
   const pw=document.getElementById('tpw').value;
   if(pw===(localStorage.getItem(K_PW)||'1234')){
     document.getElementById('tpw').value='';
-    document.getElementById('sheets-url').value = getAppUrl();
-    document.getElementById('school-input').value = isConfigLoaded ? globalConfig.school : (localStorage.getItem(K_SCHOOL)||'');
-    
-    renderLessonList(); hideEditPanel(); goto('s-teacher');
+    document.getElementById('school-input').value = window.globalConfig.school || '';
+    window.renderLessonList(); window.hideEditPanel(); window.goto('s-teacher');
   } else alert('비밀번호가 틀렸습니다.');
-}
+};
 
 // ── 단원 목록 관리 ──
-function renderLessonList(){
+window.renderLessonList = function(){
   const el=document.getElementById('lesson-list');
-  if(!lessons.length){ el.innerHTML='<div style="font-size:16px;color:var(--muted);padding:8px 0; font-weight:800;">등록된 단원이 없습니다.</div>'; return; }
-  el.innerHTML=lessons.map((l,i)=>`
-    <div class="lesson-row ${editIdx===i?'active':''}" onclick="selectLesson(${i})">
+  if(!window.lessons.length){ el.innerHTML='<div style="font-size:16px;color:var(--muted);padding:8px 0; font-weight:800;">등록된 단원이 없습니다.</div>'; return; }
+  el.innerHTML=window.lessons.map((l,i)=>`
+    <div class="lesson-row ${window.editIdx===i?'active':''}" onclick="selectLesson(${i})">
       <span class="lesson-code">${l.code}</span>
       <span class="lesson-name">${l.name||''}</span>
       <span class="lesson-cnt">${parseWords(l.words).length}단어</span>
       <button class="lesson-del" onclick="event.stopPropagation();deleteLesson(${i})">✕</button>
     </div>`).join('');
-}
-function selectLesson(i){
-  editIdx=i; const l=lessons[i];
+};
+
+window.selectLesson = function(i){
+  window.editIdx=i; const l=window.lessons[i];
   document.getElementById('edit-badge').textContent=l.code;
   document.getElementById('edit-title').textContent=l.name?`— ${l.name}`:'';
   document.getElementById('word-input').value=l.words||'';
-  renderChips(parseWords(l.words||''));
+  window.renderChips(parseWords(l.words||''));
   document.getElementById('edit-panel').style.display='block';
-  renderLessonList();
+  window.renderLessonList();
   document.getElementById('edit-panel').scrollIntoView({behavior:'smooth',block:'nearest'});
-}
-function hideEditPanel(){ editIdx=-1; document.getElementById('edit-panel').style.display='none'; }
-function addLesson(){
+};
+
+window.hideEditPanel = function(){ window.editIdx=-1; document.getElementById('edit-panel').style.display='none'; };
+
+window.addLesson = function(){
   const code=document.getElementById('new-code').value.trim().toUpperCase();
   const name=document.getElementById('new-name').value.trim();
   if(!code){ alert('단원 코드를 입력하세요.'); return; }
-  if(lessons.find(l=>l.code===code)){ alert(`${code}는 이미 존재합니다.`); return; }
-  lessons.push({code,name,words:''});
+  if(window.lessons.find(l=>l.code===code)){ alert(`${code}는 이미 존재합니다.`); return; }
+  window.lessons.push({code,name,words:''});
   document.getElementById('new-code').value='';
   document.getElementById('new-name').value='';
-  renderLessonList(); selectLesson(lessons.length-1);
-}
-function deleteLesson(i){
-  if(!confirm(`"${lessons[i].code}" 단원을 삭제할까요?`)) return;
-  lessons.splice(i,1);
-  if(editIdx===i||editIdx>=lessons.length) hideEditPanel();
-  renderLessonList();
-}
-document.getElementById('word-input').addEventListener('input',function(){ renderChips(parseWords(this.value)); });
-function renderChips(list){ document.getElementById('chips').innerHTML=list.map(w=>`<span class="chip">${w.word}</span>`).join(''); }
-function saveLesson(){
-  if(editIdx<0) return;
-  lessons[editIdx].words=document.getElementById('word-input').value.trim();
-  renderLessonList();
+  window.renderLessonList(); window.selectLesson(window.lessons.length-1);
+};
+
+window.deleteLesson = function(i){
+  if(!confirm(`"${window.lessons[i].code}" 단원을 삭제할까요?`)) return;
+  window.lessons.splice(i,1);
+  if(window.editIdx===i||window.editIdx>=window.lessons.length) window.hideEditPanel();
+  window.renderLessonList();
+};
+
+document.getElementById('word-input').addEventListener('input',function(){ window.renderChips(parseWords(this.value)); });
+
+window.renderChips = function(list){ document.getElementById('chips').innerHTML=list.map(w=>`<span class="chip">${w.word}</span>`).join(''); };
+
+window.saveLesson = function(){
+  if(window.editIdx<0) return;
+  window.lessons[window.editIdx].words=document.getElementById('word-input').value.trim();
+  window.renderLessonList();
   const b=event.currentTarget; const o=b.textContent; b.textContent='저장됨 ✓';
   setTimeout(()=>b.textContent=o,1200);
-}
-function loadSample(){
+};
+
+window.loadSample = function(){
   const s=`apple : 사과\nbanana : 바나나\ncomputer : 컴퓨터\nlibrary : 도서관\nbeautiful : 아름다운\nfriend : 친구\nschool : 학교\nteacher : 선생님\nmorning : 아침\nimportant : 중요한`;
-  document.getElementById('word-input').value=s; renderChips(parseWords(s));
-}
+  document.getElementById('word-input').value=s; window.renderChips(parseWords(s));
+};
 
-// ── 설정 파일(config.json) 다운로드 ──
-function downloadConfig(){
-  if(editIdx>=0) lessons[editIdx].words=document.getElementById('word-input').value.trim();
-  
-  const url=document.getElementById('sheets-url').value.trim();
-  const school=document.getElementById('school-input').value.trim();
-  
-  localStorage.setItem(K_LESSONS,JSON.stringify(lessons));
-  localStorage.setItem(K_URL,url);
-  localStorage.setItem(K_SCHOOL,school);
-  
-  globalConfig = { school: school, sheetsUrl: url, lessons: lessons };
-  isConfigLoaded = true;
-  document.getElementById('school-nm').textContent = school;
-
-  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(globalConfig, null, 2));
-  const downloadAnchor = document.createElement('a');
-  downloadAnchor.setAttribute("href", dataStr);
-  downloadAnchor.setAttribute("download", "config.json");
-  document.body.appendChild(downloadAnchor);
-  downloadAnchor.click();
-  downloadAnchor.remove();
-  
-  alert('✨ [config.json] 파일이 다운로드되었습니다!\n\n서버의 HTML 파일과 같은 폴더에 업로드(덮어쓰기)하세요.');
-  goto('s-mode');
-}
-
-function changePw(){
+window.changePw = function(){
   const p1=document.getElementById('npw1').value, p2=document.getElementById('npw2').value;
   if(!p1){ alert('새 비밀번호를 입력하세요.'); return; }
   if(p1!==p2){ alert('비밀번호가 일치하지 않습니다.'); return; }
   localStorage.setItem(K_PW,p1);
   document.getElementById('npw1').value=''; document.getElementById('npw2').value='';
   alert('비밀번호가 변경되었습니다.');
-}
+};
 
 // ── 학생 진입 ──
-function enterStudent(){
-  const valid=lessons.filter(l=>parseWords(l.words).length>0);
+window.enterStudent = function(){
+  const valid=window.lessons.filter(l=>parseWords(l.words).length>0);
   document.getElementById('bnr-warn').style.display=valid.length?'none':'flex';
   document.getElementById('lsel-grid').innerHTML=valid.map(l=>`
     <div class="lsel-card" id="lc-${l.code}" onclick="selectStudentLesson('${l.code}')">
@@ -770,66 +878,82 @@ function enterStudent(){
       ${l.name?`<div class="lsel-name">${l.name}</div>`:''}
       <div class="lsel-cnt">${parseWords(l.words).length}단어</div>
     </div>`).join('');
-  selLesson=null; goto('s-lesson');
-}
+  window.selLesson=null; window.goto('s-lesson');
+};
 
-function selectStudentLesson(code){
+window.selectStudentLesson = function(code){
   document.querySelectorAll('.lsel-card').forEach(c=>c.classList.remove('sel'));
   const el=document.getElementById('lc-'+code);
   if(el) el.classList.add('sel');
-  selLesson=lessons.find(l=>l.code===code);
-}
-function goToPlayer(){
-  if(!selLesson){ alert('단원을 선택해 주세요!'); return; }
-  words=parseWords(selLesson.words||'');
-  if(!words.length){ alert('선택한 단원에 단어가 없습니다.'); return; }
+  window.selLesson=window.lessons.find(l=>l.code===code);
+};
+
+window.goToPlayer = function(){
+  if(!window.selLesson){ alert('단원을 선택해 주세요!'); return; }
+  window.words=parseWords(window.selLesson.words||'');
+  if(!window.words.length){ alert('선택한 단원에 단어가 없습니다.'); return; }
   document.getElementById('sel-lesson-lbl').textContent=
-    selLesson.name?`${selLesson.code} — ${selLesson.name}`:selLesson.code;
-  goto('s-player');
-}
+    window.selLesson.name?`${window.selLesson.code} — ${window.selLesson.name}`:window.selLesson.code;
+  
+  // 기존 정보가 있다면 불러오기 (편의성)
+  let p = JSON.parse(localStorage.getItem('wtr_profile') || '{}');
+  if(p.grade) document.getElementById('p-grade').value = p.grade;
+  if(p.classNum) document.getElementById('p-class').value = p.classNum;
+  if(p.number) document.getElementById('p-num').value = p.number;
+  if(p.name) document.getElementById('p-name').value = p.name;
+    
+  window.goto('s-player');
+};
 
 // ── 게임 ──
-function startGame(){
+window.startGame = function(){
   const grade=document.getElementById('p-grade').value.trim();
   const cls=document.getElementById('p-class').value.trim();
   const num=document.getElementById('p-num').value.trim();
   const name=document.getElementById('p-name').value.trim();
   if(!grade||!cls||!num||!name){ alert('학년, 반, 번호, 이름을 모두 입력해주세요!'); return; }
-  player={grade,class:cls,number:num,name};
-  queue=[...words].sort(()=>Math.random()-.5);
-  current=0; results=[]; totalStart=Date.now();
-  goto('s-game'); renderQ();
-}
-function retryGame(){
-  queue=[...words].sort(()=>Math.random()-.5);
-  current=0; results=[]; totalStart=Date.now();
-  goto('s-game'); renderQ();
-}
-function renderQ(){
+  
+  window.player={grade,class:cls,number:num,name};
+  localStorage.setItem('wtr_profile', JSON.stringify({grade, classNum:cls, number:num, name}));
+  
+  window.queue=[...window.words].sort(()=>Math.random()-.5);
+  window.current=0; window.results=[]; window.totalStart=Date.now();
+  window.goto('s-game'); window.renderQ();
+};
+
+window.retryGame = function(){
+  window.queue=[...window.words].sort(()=>Math.random()-.5);
+  window.current=0; window.results=[]; window.totalStart=Date.now();
+  window.goto('s-game'); window.renderQ();
+};
+
+window.renderQ = function(){
   const card=document.getElementById('game-card');
   card.style.animation='none'; void card.offsetWidth; card.style.animation='screenIn .4s cubic-bezier(0.16,1,0.3,1) forwards';
-  const q=queue[current], tot=queue.length;
+  const q=window.queue[window.current], tot=window.queue.length;
   const h=Array.from({length:q.word.length},()=>'_').join(' ');
-  document.getElementById('qcnt').textContent=String(current+1).padStart(2,'0')+' / '+String(tot).padStart(2,'0');
+  document.getElementById('qcnt').textContent=String(window.current+1).padStart(2,'0')+' / '+String(tot).padStart(2,'0');
   document.getElementById('qmean').textContent=q.meaning;
   document.getElementById('qhint').textContent=`${h}  (${q.word.length}글자)`;
-  document.getElementById('sv-left').textContent=tot-current;
-  document.getElementById('prog').style.width=(current/tot*100)+'%';
+  document.getElementById('sv-left').textContent=tot-window.current;
+  document.getElementById('prog').style.width=(window.current/tot*100)+'%';
   const inp=document.getElementById('tinput');
   inp.value=''; inp.className='tinput'; inp.focus();
-  qStart=Date.now(); startTimer();
-}
-function startTimer(){
-  clearInterval(timer);
-  timer=setInterval(()=>{
-    const s=((Date.now()-qStart)/1000).toFixed(1);
+  window.qStart=Date.now(); window.startTimer();
+};
+
+window.startTimer = function(){
+  clearInterval(window.timer);
+  window.timer=setInterval(()=>{
+    const s=((Date.now()-window.qStart)/1000).toFixed(1);
     const el=document.getElementById('sv-time');
     el.textContent=s+'s'; el.className='sv'+(parseFloat(s)>10?' dng':'');
   },100);
-}
-document.getElementById('tinput').addEventListener('keydown',e=>{ if(e.key==='Enter') checkAns(); });
+};
+
+document.getElementById('tinput').addEventListener('keydown',e=>{ if(e.key==='Enter') window.checkAns(); });
 document.getElementById('tinput').addEventListener('input',function(){
-  const q=queue[current],typed=this.value.toLowerCase(),target=q.word.toLowerCase();
+  const q=window.queue[window.current],typed=this.value.toLowerCase(),target=q.word.toLowerCase();
   let h='';
   for(let i=0;i<q.word.length;i++){
     h+=(i<typed.length)?(typed[i]===target[i]?q.word[i]:'✗'):'_';
@@ -837,64 +961,66 @@ document.getElementById('tinput').addEventListener('input',function(){
   }
   document.getElementById('qhint').textContent=`${h}  (${q.word.length}글자)`;
 });
-function checkAns(){
+
+window.checkAns = function(){
   const inp=document.getElementById('tinput');
   const typed=inp.value.trim().toLowerCase();
-  const q=queue[current];
+  const q=window.queue[window.current];
   const ok=typed===q.word.toLowerCase();
-  const el=((Date.now()-qStart)/1000);
-  clearInterval(timer);
+  const el=((Date.now()-window.qStart)/1000);
+  clearInterval(window.timer);
   const sc=ok?Math.max(0,Math.round(100-el*5)):0;
-  results.push({word:q.word,meaning:q.meaning,correct:ok,elapsed:el.toFixed(1),score:sc});
-  const ts=results.reduce((a,b)=>a+b.score,0);
+  window.results.push({word:q.word,meaning:q.meaning,correct:ok,elapsed:el.toFixed(1),score:sc});
+  const ts=window.results.reduce((a,b)=>a+b.score,0);
   const sv=document.getElementById('sv-score');
   sv.textContent=ts; sv.className='sv'+(ts>0?' ok':'');
   if(ok){
     inp.className='tinput cor';
-    setTimeout(()=>{ current++; current>=queue.length?endGame():renderQ(); },500);
+    setTimeout(()=>{ window.current++; window.current>=window.queue.length?window.endGame():window.renderQ(); },500);
   } else {
     inp.className='tinput wrg'; inp.value='';
     setTimeout(()=>{
       inp.className='tinput';
-      const hh=Array.from({length:queue[current].word.length},()=>'_').join(' ');
-      document.getElementById('qhint').textContent=`${hh}  (${queue[current].word.length}글자)`;
-      inp.focus(); startTimer(); qStart=Date.now();
+      const hh=Array.from({length:window.queue[window.current].word.length},()=>'_').join(' ');
+      document.getElementById('qhint').textContent=`${hh}  (${window.queue[window.current].word.length}글자)`;
+      inp.focus(); window.startTimer(); window.qStart=Date.now();
     },600);
   }
-}
-function skipWord(){
-  const q=queue[current];
-  const el=((Date.now()-qStart)/1000);
-  clearInterval(timer);
+};
+
+window.skipWord = function(){
+  const q=window.queue[window.current];
+  const el=((Date.now()-window.qStart)/1000);
+  clearInterval(window.timer);
   
-  results.push({word:q.word,meaning:q.meaning,correct:false,elapsed:el.toFixed(1),score:0});
+  window.results.push({word:q.word,meaning:q.meaning,correct:false,elapsed:el.toFixed(1),score:0});
   
   const inp=document.getElementById('tinput');
   inp.className='tinput wrg'; 
   inp.value='SKIPPED';
   
   setTimeout(()=>{ 
-    current++; 
-    current>=queue.length?endGame():renderQ(); 
+    window.current++; 
+    window.current>=window.queue.length?window.endGame():window.renderQ(); 
   },500);
-}
+};
 
-function endGame(){
-  clearInterval(timer);
-  const totalTime=((Date.now()-totalStart)/1000).toFixed(1);
-  const cc=results.filter(r=>r.correct).length;
-  const wc=results.length-cc;
-  const ts=results.reduce((a,b)=>a+b.score,0);
-  const avg=results.length?(results.reduce((a,b)=>a+parseFloat(b.elapsed),0)/results.length).toFixed(1):0;
-  lastScore={score:ts,grade:player.grade,class:player.class,number:player.number,name:player.name,lesson:selLesson};
+window.endGame = function(){
+  clearInterval(window.timer);
+  const totalTime=((Date.now()-window.totalStart)/1000).toFixed(1);
+  const cc=window.results.filter(r=>r.correct).length;
+  const wc=window.results.length-cc;
+  const ts=window.results.reduce((a,b)=>a+b.score,0);
+  const avg=window.results.length?(window.results.reduce((a,b)=>a+parseFloat(b.elapsed),0)/window.results.length).toFixed(1):0;
+  window.lastScore={score:ts,grade:window.player.grade,class:window.player.class,number:window.player.number,name:window.player.name,lesson:window.selLesson};
   
   document.getElementById('rscore').textContent=ts;
   document.getElementById('r-correct').textContent=cc;
   document.getElementById('r-wrong').textContent=wc;
   document.getElementById('r-avg').textContent=avg+'s';
   document.getElementById('r-total').textContent=totalTime+'s';
-  document.getElementById('runit').textContent=selLesson?(selLesson.name?`${selLesson.code} — ${selLesson.name}`:selLesson.code):'';
-  document.getElementById('wrl').innerHTML=results.map((r,i)=>`
+  document.getElementById('runit').textContent=window.selLesson?(window.selLesson.name?`${window.selLesson.code} — ${window.selLesson.name}`:window.selLesson.code):'';
+  document.getElementById('wrl').innerHTML=window.results.map((r,i)=>`
     <div class="wrr ${r.correct?'ok':'ng'}">
       <span class="wn">${String(i+1).padStart(2,'0')}</span>
       <span style="color:${r.correct?'var(--success)':'var(--accent2)'}; font-weight:800;">${r.correct?'✓':'✗'}</span>
@@ -904,136 +1030,75 @@ function endGame(){
     </div>`).join('');
   document.getElementById('prog').style.width='100%';
   
-  const url=getAppUrl();
-  goto('s-result');
-  if(url) saveSheets(url,{ts,cc,wc,totalTime,avg});
-}
-async function saveSheets(url,s){
-  const el=document.getElementById('ss-wrap');
-  if(!player.grade||!player.class||!player.number||!player.name||!selLesson){
-    el.innerHTML='<div class="ss err">✗ 저장 실패: 학생 정보 또는 단원 정보가 없습니다.</div>';
-    return;
+  window.goto('s-result');
+  // 결과 화면으로 전환 후 바로 Firebase에 데이터 전송 시작
+  if (typeof window.saveToFirebase === 'function') {
+    window.saveToFirebase({ts,cc,wc,totalTime,avg});
   }
-  el.innerHTML='<div class="ss">⏳ 랭킹 서버에 점수 전송 중...</div>';
-  const wr=results.map(r=>`${r.word}(${r.correct?"O":"X"},${r.elapsed}s)`).join(" | ");
-  const lessonLabel=selLesson.code;
-  const p=new URLSearchParams({
-    grade:player.grade, class:player.class, number:player.number, name:player.name,
-    lesson:lessonLabel,
-    score:s.ts, correct:s.cc, wrong:s.wc,
-    totalTime:s.totalTime, avgTime:s.avg, wordResults:wr
-  });
-  try{
-    await fetch(url+"?"+p.toString(),{method:"GET",mode:"no-cors"});
-    el.innerHTML='<div class="ss ok">✓ 서버 기록 전송 완료!</div>';
-  }catch(e){
-    el.innerHTML='<div class="ss err">✗ 저장 실패: 인터넷 연결이나 URL을 확인해 주세요.</div>';
-  }
-}
+};
 
 // ── 순위 진입 ──
-function enterRanking(){
-  lastScore=null; initRanking();
-}
-function goRankingFromResult(){
-  initRanking();
-}
-function initRanking(){
-  rankTab='class'; // 기본을 반별 순위로 설정
-  // 방금 시험을 본 직후라면(lastScore가 존재한다면), 해당 단원을 디폴트로 자동 선택
-  rankLesson = (lastScore && lastScore.lesson) ? lastScore.lesson.code : '';
-  rankData=[];
-  buildLessonDropdown();
+window.enterRanking = function(){
+  window.lastScore=null; window.initRanking();
+};
+window.goRankingFromResult = function(){
+  window.initRanking();
+};
+window.initRanking = function(){
+  window.rankTab='class'; 
+  window.rankLesson = (window.lastScore && window.lastScore.lesson) ? window.lastScore.lesson.code : '';
+  window.rankData=[];
+  window.buildLessonDropdown();
   
   ['class','grade','all'].forEach(t=>document.getElementById('tab-'+t).classList.toggle('on',t==='class'));
   document.getElementById('grade-filter').style.display='none';
-  document.getElementById('class-filter').style.display='flex'; // 반별 순위이므로 기본 표출
+  document.getElementById('class-filter').style.display='flex'; 
   document.getElementById('my-rank-badge').style.display='none';
-  goto('s-ranking');
-  loadRankData();
-}
+  window.goto('s-ranking');
+  if (typeof window.loadRankData === 'function') {
+    window.loadRankData();
+  }
+};
 
-function buildLessonDropdown(){
-  const validLessons=lessons.filter(l=>parseWords(l.words).length>0);
+window.buildLessonDropdown = function(){
+  const validLessons=window.lessons.filter(l=>parseWords(l.words).length>0);
   const selectElement = document.getElementById('rank-lesson-select');
   selectElement.innerHTML = 
     `<option value="">모든 단원 통합 보기</option>` +
     validLessons.map(l=>`<option value="${l.code}">${l.code}${l.name?' — '+l.name:''}</option>`).join('');
-  selectElement.value = rankLesson; // 현재 설정된 단원이 있다면 유지
-}
+  selectElement.value = window.rankLesson;
+};
 
-function setRankLesson(code){
-  rankLesson=code;
-  renderRankTable();
-}
+window.setRankLesson = function(code){
+  window.rankLesson=code;
+  window.renderRankTable();
+};
 
-function setRankTab(tab){
-  rankTab=tab;
+window.setRankTab = function(tab){
+  window.rankTab=tab;
   ['class','grade','all'].forEach(t=>document.getElementById('tab-'+t).classList.toggle('on',t===tab));
   document.getElementById('grade-filter').style.display=tab==='grade'?'flex':'none';
   document.getElementById('class-filter').style.display=tab==='class'?'flex':'none';
-  renderRankTable();
-}
+  window.renderRankTable();
+};
 
-// ── 데이터 로드 ──
-async function loadRankData(){
-  const url=getAppUrl();
-  const body=document.getElementById('rank-body');
-  if(!url){
-    body.innerHTML='<div class="rank-empty">⚠️ 교사 설정에서<br>Google Sheets URL을 먼저 등록해야 랭킹을 볼 수 있습니다.</div>';
-    return;
-  }
-  body.innerHTML='<div class="rank-loading"><span class="spinner"></span>순위 데이터를 불러오는 중...</div>';
-  try{
-    const res=await fetch(url+'?action=getRanking', {cache:'no-store'});
-    const json=await res.json();
-    if(json.status!=='ok') throw new Error('서버 오류');
-    rankData=json.rows||[];
-
-    const grades=[...new Set(rankData.map(r=>String(r['학년']||'')).filter(Boolean))].sort((a,b)=>Number(a)-Number(b));
-    const gs=document.getElementById('sel-grade');
-    const gs2=document.getElementById('sel-grade2');
-    
-    // Select Option 초기화
-    [gs,gs2].forEach(s=>{
-      s.innerHTML='<option value="">-- 학년 선택 --</option>'+grades.map(g=>`<option value="${g}">${g}학년</option>`).join('');
-    });
-
-    // 학생이 방금 게임을 마쳤다면, 해당 학생의 학년과 반을 자동으로 셋팅해 줍니다.
-    if(lastScore) {
-      if([...gs.options].some(o => o.value === String(lastScore.grade))) gs.value = String(lastScore.grade);
-      if([...gs2.options].some(o => o.value === String(lastScore.grade))) {
-        gs2.value = String(lastScore.grade);
-        onGrade2Change(false); // UI만 업데이트, 렌더링은 잠시 보류
-        const cs = document.getElementById('sel-class');
-        if([...cs.options].some(o => o.value === String(lastScore.class))) cs.value = String(lastScore.class);
-      }
-    }
-
-    renderRankTable();
-  }catch(e){
-    body.innerHTML=`<div class="rank-empty">❌ 데이터를 불러오지 못했습니다.<br><small style="color:var(--muted)">${e.message}</small><br><br>Apps Script가 올바르게 배포되었는지 확인해 주세요.</div>`;
-  }
-}
-
-function onGrade2Change(triggerRender = true){
+window.onGrade2Change = function(triggerRender = true){
   const grade=document.getElementById('sel-grade2').value;
   const classes=[...new Set(
-    rankData.filter(r=>!grade||String(r['학년'])===grade)
+    window.rankData.filter(r=>!grade||String(r['학년'])===grade)
       .map(r=>String(r['반']||'')).filter(Boolean)
   )].sort((a,b)=>Number(a)-Number(b));
   document.getElementById('sel-class').innerHTML='<option value="">-- 반 선택 --</option>'+classes.map(c=>`<option value="${c}">${c}반</option>`).join('');
-  if (triggerRender) renderRankTable();
-}
+  if (triggerRender) window.renderRankTable();
+};
 
 // ── 순위 테이블 렌더링 ──
-function renderRankTable(){
+window.renderRankTable = function(){
   const body=document.getElementById('rank-body');
-  let rows=[...rankData];
+  let rows=[...window.rankData];
 
-  // 단원 필터링
-  if(rankLesson){
-    rows=rows.filter(r=>String(r['단원']||'').trim()===rankLesson);
+  if(window.rankLesson){
+    rows=rows.filter(r=>String(r['단원']||'').trim()===window.rankLesson);
     if(!rows.length){
       document.getElementById('my-rank-badge').style.display='none';
       body.innerHTML='<div class="rank-empty">📭 이 단원의 기록이 아직 없습니다.</div>';
@@ -1041,8 +1106,7 @@ function renderRankTable(){
     }
   }
 
-  // 범위 필터링
-  if(rankTab==='grade'){
+  if(window.rankTab==='grade'){
     const grade=document.getElementById('sel-grade').value;
     if(!grade) {
       body.innerHTML='<div class="rank-empty">👆 위에서 조회할 학년을 선택해주세요.</div>';
@@ -1050,7 +1114,7 @@ function renderRankTable(){
       return;
     }
     rows=rows.filter(r=>String(r['학년'])===grade);
-  } else if(rankTab==='class'){
+  } else if(window.rankTab==='class'){
     const grade=document.getElementById('sel-grade2').value;
     const cls=document.getElementById('sel-class').value;
     if(!grade||!cls){
@@ -1076,14 +1140,14 @@ function renderRankTable(){
   const ranked=Object.values(best).sort((a,b)=>safeNum(b['점수'])-safeNum(a['점수']));
 
   const badge=document.getElementById('my-rank-badge');
-  if(lastScore){
-    const myKey=`${lastScore.grade}_${lastScore.class}_${lastScore.number}_${lastScore.name}`;
+  if(window.lastScore){
+    const myKey=`${window.lastScore.grade}_${window.lastScore.class}_${window.lastScore.number}_${window.lastScore.name}`;
     const myIdx=ranked.findIndex(r=>`${r['학년']}_${r['반']}_${r['번호']}_${r['이름']}`===myKey);
     if(myIdx>=0){
       badge.style.display='flex';
       document.getElementById('my-rank-pos').textContent=`${myIdx+1}위`;
-      document.getElementById('my-rank-nm').textContent=`${lastScore.name} (${lastScore.grade}학년 ${lastScore.class}반)`;
-      document.getElementById('my-rank-sc').textContent=`${lastScore.score}점`;
+      document.getElementById('my-rank-nm').textContent=`${window.lastScore.name} (${window.lastScore.grade}학년 ${window.lastScore.class}반)`;
+      document.getElementById('my-rank-sc').textContent=`${window.lastScore.score}점`;
       document.getElementById('my-rank-info').textContent=`전체 ${ranked.length}명 중`;
     } else badge.style.display='none';
   } else badge.style.display='none';
@@ -1099,11 +1163,11 @@ function renderRankTable(){
       </tr></thead>
       <tbody>
         ${ranked.map((r,i)=>{
-          const isMe=lastScore
-            &&String(r['이름'])===String(lastScore.name)
-            &&String(r['학년'])===String(lastScore.grade)
-            &&String(r['반'])===String(lastScore.class)
-            &&String(r['번호'])===String(lastScore.number);
+          const isMe=window.lastScore
+            &&String(r['이름'])===String(window.lastScore.name)
+            &&String(r['학년'])===String(window.lastScore.grade)
+            &&String(r['반'])===String(window.lastScore.class)
+            &&String(r['번호'])===String(window.lastScore.number);
           const medal=medals[i]||'';
           const sc=safeNum(r['점수']);
           return `<tr class="rank-${i<3?i+1:''} ${isMe?'me':''}">
@@ -1115,7 +1179,7 @@ function renderRankTable(){
         }).join('')}
       </tbody>
     </table>`;
-}
+};
 </script>
 </body>
 </html>
