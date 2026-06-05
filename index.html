@@ -13,7 +13,6 @@
   --accent2:#e11d48; --accent3:#7c3aed; --accent3-glow:rgba(124, 58, 237, 0.25);
   --teacher:#d97706; --text:#0f172a; --muted:#64748b;
   --border:rgba(255, 255, 255, 0.7); --success:#059669;
-  --gold:#d97706; --silver:#64748b; --bronze:#92400e;
   --mono:'Nanum Gothic',sans-serif; --sans:'Nanum Gothic',sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -110,25 +109,23 @@ textarea{min-height:180px;resize:vertical;font-family:var(--mono);font-size:15px
 .bs:hover{background:#ffffff;border-color:rgba(0,0,0,0.2);transform:translateY(-3px);box-shadow:0 8px 20px rgba(0,0,0,0.08);}
 .br{display:flex;gap:16px;margin-top:24px;flex-wrap:wrap;align-items:center;}
 
-/* MODE SELECT BUTTONS (초기화면 2개 버튼 - 높이 대폭 축소) */
-.msel{display:grid;grid-template-columns:1fr 1fr;gap:30px;margin-top:10px;margin-bottom:24px;}
+/* MODE SELECT BUTTONS (초기화면 1개 버튼으로 변경) */
+.msel{display:flex; justify-content:center; margin-top:20px; margin-bottom:30px;}
 .mbtn{
   background:rgba(255,255,255,0.5); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
   border:1px solid rgba(255,255,255,0.8); border-radius:24px;
-  padding:24px 16px;
+  padding:32px 40px; min-width: 280px;
   cursor:pointer; text-align:center; transition:all .4s cubic-bezier(0.16,1,0.3,1);
-  display:flex;flex-direction:column;align-items:center;gap:8px;
+  display:flex;flex-direction:column;align-items:center;gap:12px;
   box-shadow:0 8px 24px rgba(0,0,0,0.03), inset 0 1px 0 rgba(255,255,255,1);
 }
 .mbtn:hover{transform:translateY(-6px) scale(1.02); background:rgba(255,255,255,0.9); box-shadow:0 16px 40px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,1);}
 .mbtn.sb:hover{border-color:rgba(2,132,199,0.3);box-shadow:0 16px 40px rgba(2,132,199,.15), inset 0 1px 0 rgba(255,255,255,1);}
-.mbtn.tb:hover{border-color:rgba(217,119,6,0.3);box-shadow:0 16px 40px rgba(217,119,6,.15), inset 0 1px 0 rgba(255,255,255,1);}
-.mbtn.rb:hover{border-color:rgba(124,58,237,0.3);box-shadow:0 16px 40px rgba(124,58,237,.15), inset 0 1px 0 rgba(255,255,255,1);}
-.mico{font-size:48px; filter:drop-shadow(0 4px 12px rgba(0,0,0,0.1)); transition:transform .4s cubic-bezier(0.16,1,0.3,1);}
+.mico{font-size:56px; filter:drop-shadow(0 4px 12px rgba(0,0,0,0.1)); transition:transform .4s cubic-bezier(0.16,1,0.3,1);}
 .mbtn:hover .mico{transform:scale(1.15) translateY(-3px);}
-.mlbl{font-family:var(--mono);font-size:22px;letter-spacing:1px;font-weight:800;margin-top:0;}
-.mdsc{font-size:14px;color:var(--muted);line-height:1.4;}
-.sb .mlbl{color:var(--accent);}.tb .mlbl{color:var(--teacher);}.rb .mlbl{color:var(--accent3);}
+.mlbl{font-family:var(--mono);font-size:24px;letter-spacing:1px;font-weight:800;margin-top:0;}
+.mdsc{font-size:15px;color:var(--muted);line-height:1.4;}
+.sb .mlbl{color:var(--accent);}
 
 /* CUSTOM SCROLLBARS FOR LISTS */
 ::-webkit-scrollbar { width: 8px; height: 8px; }
@@ -161,7 +158,7 @@ textarea{min-height:180px;resize:vertical;font-family:var(--mono);font-size:15px
 .bnr.ok{background:rgba(16,185,129,.05);border-color:rgba(16,185,129,.2); color:var(--success);}
 .bnr.warn{background:rgba(255,61,113,.05);border-color:rgba(255,61,113,.2);color:var(--accent2);}
 
-/* LESSON SELECT CARDS (높이 1/2로 대폭 축소) */
+/* LESSON SELECT CARDS */
 .lsel-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-top:16px;}
 .lsel-card{
   background:rgba(255,255,255,0.8);border:1px solid rgba(255,255,255,1);border-radius:20px;
@@ -223,63 +220,13 @@ textarea{min-height:180px;resize:vertical;font-family:var(--mono);font-size:15px
 .ss.ok{border-color:rgba(16,185,129,.4);color:var(--success); background:rgba(16,185,129,0.04);}
 .ss.err{border-color:rgba(225,29,72,.4);color:var(--accent2); background:rgba(225,29,72,0.04);}
 
-/* ===== RANKING UI ===== */
-.rank-filters {
-  display: flex; gap: 8px; background: rgba(0,0,0,0.03); padding: 10px; 
-  border-radius: 20px; border: 1px solid rgba(0,0,0,0.04); margin-bottom: 30px;
-  width: fit-content; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
-}
-.rank-filters .tab-btn {
-  border: none; background: transparent; color: var(--muted); padding: 14px 28px; 
-  border-radius: 14px; margin: 0; font-family: var(--sans); font-size: 16px; font-weight: 700;
-  transition: all .3s cubic-bezier(0.16,1,0.3,1);
-}
-.rank-filters .tab-btn.on {
-  background: #ffffff; color: var(--accent); box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-  border: 1px solid rgba(0,0,0,0.05); font-weight: 800;
-}
-
-.sub-filter-row{display:flex;gap:20px;align-items:center;flex-wrap:wrap;margin-bottom:24px; background:#ffffff; padding:20px 28px; border-radius:20px; border:1px solid rgba(0,0,0,0.05); box-shadow:0 8px 24px rgba(0,0,0,0.03);}
-.sub-filter-row label{font-size:16px;color:var(--text); font-weight:800;}
-.sub-filter-row select{width:auto;padding:14px 40px 14px 20px;font-size:16px; font-weight:800; min-width: 160px; border-radius:14px;}
-
-/* RANK TABLE */
-.rank-table{width:100%;border-collapse:separate; border-spacing:0 8px; margin-top:16px;}
-.rank-table th{font-family:var(--mono);font-size:15px;letter-spacing:2px;color:var(--muted);padding:16px 20px;text-align:left; font-weight:800;}
-.rank-table td{padding:20px;font-size:18px;background:#ffffff; transition:all .3s cubic-bezier(0.16,1,0.3,1); font-weight:700; border-top:1px solid rgba(0,0,0,0.03); border-bottom:1px solid rgba(0,0,0,0.03);}
-.rank-table td:first-child{border-top-left-radius:16px; border-bottom-left-radius:16px; border-left:1px solid rgba(0,0,0,0.03);}
-.rank-table td:last-child{border-top-right-radius:16px; border-bottom-right-radius:16px; border-right:1px solid rgba(0,0,0,0.03);}
-.rank-table tr:hover td{background:rgba(2,132,199,0.02); transform:scale(1.01); box-shadow:0 8px 20px rgba(0,0,0,0.05);}
-.rank-table tr.me td{background:rgba(2,132,199,0.06); border-color:rgba(2,132,199,0.2);}
-.rank-num{font-family:var(--mono);font-weight:800;font-size:22px; display:inline-block; width: 40px; text-align: center;}
-.rank-1 .rank-num{color:var(--gold); text-shadow:0 4px 12px rgba(217, 119, 6, 0.4); transform:scale(1.4);}
-.rank-2 .rank-num{color:var(--silver); transform:scale(1.2);}
-.rank-3 .rank-num{color:var(--bronze); transform:scale(1.2);}
-.rank-score{font-family:var(--mono);font-weight:800;color:var(--accent);text-align:right; font-size:22px;}
-.rank-info{color:var(--muted);font-size:15px;}
-.rank-name{font-weight:800; font-size:20px; color:var(--text);}
-.rank-empty{text-align:center;padding:80px 20px;color:var(--muted);font-size:18px;line-height:2; background:rgba(0,0,0,0.02); border-radius:24px; font-weight:700;}
-.rank-loading{text-align:center;padding:80px;color:var(--muted);font-size:18px; font-weight:800;}
-
-/* MY RANK BADGE */
-.my-rank-wrap{display:flex;align-items:center;gap:30px;background:linear-gradient(135deg, rgba(2,132,199,.06), rgba(2,132,199,.02));border:1px solid rgba(2,132,199,.2);border-radius:24px;padding:30px 36px;margin-bottom:32px;flex-wrap:wrap; box-shadow: 0 12px 36px rgba(2,132,199,0.08); background-color:#ffffff;}
-.my-rank-pos{font-family:var(--mono);font-size:48px;font-weight:800;color:var(--accent); text-shadow:0 6px 16px rgba(2,132,199,.2);}
-.my-rank-lbl{font-size:14px;color:var(--muted);letter-spacing:2px; font-weight:800;}
-.my-rank-nm{font-size:22px;font-weight:800; color:var(--text);}
-.my-rank-sc{font-family:var(--mono);font-size:32px;font-weight:800;color:var(--accent3); margin-top:6px;}
-
 @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}60%{transform:translateX(8px)}}
-@keyframes spin{to{transform:rotate(360deg)}}
 .gc{animation:screenIn .4s cubic-bezier(0.16,1,0.3,1) forwards;}
-.spinner{width:28px;height:28px;border:4px solid rgba(0,0,0,0.1);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;display:inline-block;margin-right:16px;vertical-align:middle;}
 
 @media(max-width:768px){
-  .msel{grid-template-columns:1fr;}
   .fr4{grid-template-columns:1fr 1fr;}
   .lsel-grid{grid-template-columns:1fr 1fr;}
   .qmean{font-size:36px;}.tinput{font-size:32px;}.rscore{font-size:80px;}
-  .rank-filters { width: 100%; justify-content: center; }
-  .rank-filters .tab-btn { flex: 1; text-align: center; padding: 14px 8px; font-size: 15px; }
   body { padding: 20px 15px; }
   .card { padding: 30px; }
 }
@@ -316,12 +263,7 @@ const TEACHER_SHEETS_URL = "https://script.google.com/macros/s/AKfycbxCcVn-591aZ
       <div class="mbtn sb" onclick="enterStudent()">
         <div class="mico">🎮</div>
         <div class="mlbl">게임 시작</div>
-        <div class="mdsc">단원 선택 후<br>바로 타이핑 도전!</div>
-      </div>
-      <div class="mbtn rb" onclick="enterRanking()">
-        <div class="mico">🏆</div>
-        <div class="mlbl">순위 확인</div>
-        <div class="mdsc">우리 반, 학년,<br>전체 랭킹 보기</div>
+        <div class="mdsc">단원 선택 후 바로 타이핑 도전!</div>
       </div>
     </div>
     <div style="text-align: center; padding-top: 20px; border-top: 1px solid rgba(0,0,0,0.08);">
@@ -398,12 +340,12 @@ const TEACHER_SHEETS_URL = "https://script.google.com/macros/s/AKfycbxCcVn-591aZ
 
   <!-- Google Sheets -->
   <div class="card tc">
-    <div class="ct t">Google Sheets 랭킹 연동</div>
+    <div class="ct t">Google Sheets 데이터 연동</div>
     <div class="fg">
       <label>Apps Script 웹앱 URL</label>
       <input type="text" id="sheets-url" placeholder="https://script.google.com/macros/s/.../exec"/>
     </div>
-    <p class="hint">결과 저장 및 순위 조회에 사용되는 필수 DB 주소입니다.</p>
+    <p class="hint">결과 데이터를 시트에 자동으로 전송하기 위한 필수 DB 주소입니다.</p>
   </div>
 
   <!-- 비밀번호 변경 -->
@@ -528,86 +470,9 @@ const TEACHER_SHEETS_URL = "https://script.google.com/macros/s/AKfycbxCcVn-591aZ
     <div class="ct">단어별 상세 결과</div>
     <div class="wrl" id="wrl"></div>
   </div>
-  <div class="br" style="margin-bottom:24px">
-    <button class="btn bs" onclick="goto('s-lesson')">단원 변경</button>
-    <button class="btn bs" onclick="retryGame()">다시 도전</button>
-    <button class="btn bv" onclick="goRankingFromResult()" style="margin-left:auto; padding-left:36px; padding-right:36px;">🏆 랭킹 보드 보기</button>
-  </div>
-</div>
-
-<!-- ⑧ 순위 -->
-<div class="scr" id="s-ranking">
-  <div class="card">
-    <div class="ct" style="margin-bottom:24px">랭킹 보드</div>
-
-    <!-- 범위 탭 -->
-    <div style="display:flex; justify-content:center;">
-      <div class="rank-filters">
-        <button class="tab-btn on" id="tab-class" onclick="setRankTab('class')">반별 순위</button>
-        <button class="tab-btn" id="tab-grade" onclick="setRankTab('grade')">학년별 순위</button>
-        <button class="tab-btn" id="tab-all" onclick="setRankTab('all')">전체 순위</button>
-      </div>
-    </div>
-
-    <!-- 단원 드롭다운 -->
-    <div class="fg" style="margin-bottom:24px;">
-      <label>단원 선택</label>
-      <div class="select-wrap">
-        <select id="rank-lesson-select" onchange="setRankLesson(this.value)" style="font-family: var(--mono); font-weight: 800; color: var(--accent); background: rgba(2, 132, 199, 0.08); border-color: rgba(2, 132, 199, 0.25);">
-          <option value="">모든 단원 통합 보기</option>
-        </select>
-      </div>
-    </div>
-
-    <!-- 학년 필터 -->
-    <div id="grade-filter" class="sub-filter-row" style="display:none">
-      <label>조회할 학년</label>
-      <div class="select-wrap">
-        <select id="sel-grade" onchange="renderRankTable()">
-          <option value="">전체 학년</option>
-        </select>
-      </div>
-    </div>
-
-    <!-- 반 필터 -->
-    <div id="class-filter" class="sub-filter-row" style="display:none">
-      <label>학년</label>
-      <div class="select-wrap">
-        <select id="sel-grade2" onchange="onGrade2Change()">
-          <option value="">-- 선택 --</option>
-        </select>
-      </div>
-      <label style="margin-left:12px;">반</label>
-      <div class="select-wrap">
-        <select id="sel-class" onchange="renderRankTable()">
-          <option value="">-- 선택 --</option>
-        </select>
-      </div>
-    </div>
-
-    <!-- 내 순위 뱃지 -->
-    <div id="my-rank-badge" style="display:none">
-      <div class="my-rank-wrap">
-        <div>
-          <div class="my-rank-pos" id="my-rank-pos">—</div>
-          <div class="my-rank-lbl">내 현재 순위</div>
-        </div>
-        <div style="border-left:1px solid rgba(0,0,0,0.1);padding-left:24px;">
-          <div class="my-rank-nm" id="my-rank-nm">—</div>
-          <div class="my-rank-sc" id="my-rank-sc">—</div>
-          <div style="font-size:14px;color:var(--muted);margin-top:6px; font-weight:700;" id="my-rank-info">—</div>
-        </div>
-      </div>
-    </div>
-
-    <div id="rank-body">
-      <div class="rank-loading"><span class="spinner"></span>데이터를 불러오는 중...</div>
-    </div>
-  </div>
-
-  <div class="br" style="margin-bottom:48px">
-    <button class="btn bs" onclick="goto('s-mode')">← 메인 화면으로</button>
-    <button class="btn bp" onclick="loadRankData()" style="margin-left:auto; background:linear-gradient(135deg, var(--accent3), #6d28d9); box-shadow:0 6px 16px rgba(124,58,237,.25);">데이터 새로고침 ↺</button>
+  <div class="br" style="margin-bottom:24px; justify-content:center; gap: 24px;">
+    <button class="btn bs" onclick="goto('s-lesson')">← 단원 변경</button>
+    <button class="btn bp" onclick="retryGame()" style="padding-left:40px; padding-right:40px;">다시 도전 ↺</button>
   </div>
 </div>
 
@@ -626,7 +491,7 @@ const K_LESSONS='wtr_lessons', K_URL='wtr_url', K_PW='wtr_pw', K_SCHOOL='wtr_sch
 let lessons=[], editIdx=-1, selLesson=null;
 let words=[], player={}, queue=[], current=0, results=[];
 let qStart=0, totalStart=0, timer=null;
-let rankData=[], rankTab='class', rankLesson='', lastScore=null;
+let lastScore=null;
 
 // ── 서버 연동 전역 변수 ──
 let isConfigLoaded = false;
@@ -680,7 +545,6 @@ function goto(id){
   window.scrollTo(0,0);
   const sub=document.getElementById('hsub');
   if(id==='s-login'||id==='s-teacher'){ sub.textContent='교사 설정 모드'; sub.style.color='var(--teacher)';}
-  else if(id==='s-ranking'){ sub.textContent='🏆 실시간 랭킹 보드'; sub.style.color='var(--accent3)';}
   else{ sub.textContent='영어 단어 타이핑 게임'; sub.style.color='';}
 }
 
@@ -954,192 +818,6 @@ async function saveSheets(url,s){
   }catch(e){
     el.innerHTML='<div class="ss err">✗ 저장 실패: 인터넷 연결이나 URL을 확인해 주세요.</div>';
   }
-}
-
-// ── 순위 진입 ──
-function enterRanking(){
-  lastScore=null; initRanking();
-}
-function goRankingFromResult(){
-  initRanking();
-}
-function initRanking(){
-  rankTab='class'; // 기본을 반별 순위로 설정
-  // 방금 시험을 본 직후라면(lastScore가 존재한다면), 해당 단원을 디폴트로 자동 선택
-  rankLesson = (lastScore && lastScore.lesson) ? lastScore.lesson.code : '';
-  rankData=[];
-  buildLessonDropdown();
-  
-  ['class','grade','all'].forEach(t=>document.getElementById('tab-'+t).classList.toggle('on',t==='class'));
-  document.getElementById('grade-filter').style.display='none';
-  document.getElementById('class-filter').style.display='flex'; // 반별 순위이므로 기본 표출
-  document.getElementById('my-rank-badge').style.display='none';
-  goto('s-ranking');
-  loadRankData();
-}
-
-function buildLessonDropdown(){
-  const validLessons=lessons.filter(l=>parseWords(l.words).length>0);
-  const selectElement = document.getElementById('rank-lesson-select');
-  selectElement.innerHTML = 
-    `<option value="">모든 단원 통합 보기</option>` +
-    validLessons.map(l=>`<option value="${l.code}">${l.code}${l.name?' — '+l.name:''}</option>`).join('');
-  selectElement.value = rankLesson; // 현재 설정된 단원이 있다면 유지
-}
-
-function setRankLesson(code){
-  rankLesson=code;
-  renderRankTable();
-}
-
-function setRankTab(tab){
-  rankTab=tab;
-  ['class','grade','all'].forEach(t=>document.getElementById('tab-'+t).classList.toggle('on',t===tab));
-  document.getElementById('grade-filter').style.display=tab==='grade'?'flex':'none';
-  document.getElementById('class-filter').style.display=tab==='class'?'flex':'none';
-  renderRankTable();
-}
-
-// ── 데이터 로드 ──
-async function loadRankData(){
-  const url=getAppUrl();
-  const body=document.getElementById('rank-body');
-  if(!url){
-    body.innerHTML='<div class="rank-empty">⚠️ 교사 설정에서<br>Google Sheets URL을 먼저 등록해야 랭킹을 볼 수 있습니다.</div>';
-    return;
-  }
-  body.innerHTML='<div class="rank-loading"><span class="spinner"></span>순위 데이터를 불러오는 중...</div>';
-  try{
-    const res=await fetch(url+'?action=getRanking', {cache:'no-store'});
-    const json=await res.json();
-    if(json.status!=='ok') throw new Error('서버 오류');
-    rankData=json.rows||[];
-
-    const grades=[...new Set(rankData.map(r=>String(r['학년']||'')).filter(Boolean))].sort((a,b)=>Number(a)-Number(b));
-    const gs=document.getElementById('sel-grade');
-    const gs2=document.getElementById('sel-grade2');
-    
-    // Select Option 초기화
-    [gs,gs2].forEach(s=>{
-      s.innerHTML='<option value="">-- 학년 선택 --</option>'+grades.map(g=>`<option value="${g}">${g}학년</option>`).join('');
-    });
-
-    // 학생이 방금 게임을 마쳤다면, 해당 학생의 학년과 반을 자동으로 셋팅해 줍니다.
-    if(lastScore) {
-      if([...gs.options].some(o => o.value === String(lastScore.grade))) gs.value = String(lastScore.grade);
-      if([...gs2.options].some(o => o.value === String(lastScore.grade))) {
-        gs2.value = String(lastScore.grade);
-        onGrade2Change(false); // UI만 업데이트, 렌더링은 잠시 보류
-        const cs = document.getElementById('sel-class');
-        if([...cs.options].some(o => o.value === String(lastScore.class))) cs.value = String(lastScore.class);
-      }
-    }
-
-    renderRankTable();
-  }catch(e){
-    body.innerHTML=`<div class="rank-empty">❌ 데이터를 불러오지 못했습니다.<br><small style="color:var(--muted)">${e.message}</small><br><br>Apps Script가 올바르게 배포되었는지 확인해 주세요.</div>`;
-  }
-}
-
-function onGrade2Change(triggerRender = true){
-  const grade=document.getElementById('sel-grade2').value;
-  const classes=[...new Set(
-    rankData.filter(r=>!grade||String(r['학년'])===grade)
-      .map(r=>String(r['반']||'')).filter(Boolean)
-  )].sort((a,b)=>Number(a)-Number(b));
-  document.getElementById('sel-class').innerHTML='<option value="">-- 반 선택 --</option>'+classes.map(c=>`<option value="${c}">${c}반</option>`).join('');
-  if (triggerRender) renderRankTable();
-}
-
-// ── 순위 테이블 렌더링 ──
-function renderRankTable(){
-  const body=document.getElementById('rank-body');
-  let rows=[...rankData];
-
-  // 단원 필터링
-  if(rankLesson){
-    rows=rows.filter(r=>String(r['단원']||'').trim()===rankLesson);
-    if(!rows.length){
-      document.getElementById('my-rank-badge').style.display='none';
-      body.innerHTML='<div class="rank-empty">📭 이 단원의 기록이 아직 없습니다.</div>';
-      return;
-    }
-  }
-
-  // 범위 필터링
-  if(rankTab==='grade'){
-    const grade=document.getElementById('sel-grade').value;
-    if(!grade) {
-      body.innerHTML='<div class="rank-empty">👆 위에서 조회할 학년을 선택해주세요.</div>';
-      document.getElementById('my-rank-badge').style.display='none';
-      return;
-    }
-    rows=rows.filter(r=>String(r['학년'])===grade);
-  } else if(rankTab==='class'){
-    const grade=document.getElementById('sel-grade2').value;
-    const cls=document.getElementById('sel-class').value;
-    if(!grade||!cls){
-      body.innerHTML='<div class="rank-empty">👆 위에서 학년과 반을 모두 선택해주세요.</div>';
-      document.getElementById('my-rank-badge').style.display='none';
-      return;
-    }
-    rows=rows.filter(r=>String(r['학년'])===grade&&String(r['반'])===cls);
-  }
-
-  if(!rows.length){
-    document.getElementById('my-rank-badge').style.display='none';
-    body.innerHTML='<div class="rank-empty">📭 해당 조건의 데이터가 없습니다.</div>';
-    return;
-  }
-
-  const best={};
-  rows.forEach(r=>{
-    const key=`${r['학년']}_${r['반']}_${r['번호']}_${r['이름']}`;
-    const sc=safeNum(r['점수']);
-    if(!best[key]||sc>safeNum(best[key]['점수'])) best[key]=r;
-  });
-  const ranked=Object.values(best).sort((a,b)=>safeNum(b['점수'])-safeNum(a['점수']));
-
-  const badge=document.getElementById('my-rank-badge');
-  if(lastScore){
-    const myKey=`${lastScore.grade}_${lastScore.class}_${lastScore.number}_${lastScore.name}`;
-    const myIdx=ranked.findIndex(r=>`${r['학년']}_${r['반']}_${r['번호']}_${r['이름']}`===myKey);
-    if(myIdx>=0){
-      badge.style.display='flex';
-      document.getElementById('my-rank-pos').textContent=`${myIdx+1}위`;
-      document.getElementById('my-rank-nm').textContent=`${lastScore.name} (${lastScore.grade}학년 ${lastScore.class}반)`;
-      document.getElementById('my-rank-sc').textContent=`${lastScore.score}점`;
-      document.getElementById('my-rank-info').textContent=`전체 ${ranked.length}명 중`;
-    } else badge.style.display='none';
-  } else badge.style.display='none';
-
-  const medals=['🥇','🥈','🥉'];
-  body.innerHTML=`
-    <table class="rank-table">
-      <thead><tr>
-        <th style="width:60px; text-align:center;">순위</th>
-        <th>이름</th>
-        <th>정보</th>
-        <th style="text-align:right">점수</th>
-      </tr></thead>
-      <tbody>
-        ${ranked.map((r,i)=>{
-          const isMe=lastScore
-            &&String(r['이름'])===String(lastScore.name)
-            &&String(r['학년'])===String(lastScore.grade)
-            &&String(r['반'])===String(lastScore.class)
-            &&String(r['번호'])===String(lastScore.number);
-          const medal=medals[i]||'';
-          const sc=safeNum(r['점수']);
-          return `<tr class="rank-${i<3?i+1:''} ${isMe?'me':''}">
-            <td><span class="rank-num">${medal||String(i+1)}</span></td>
-            <td class="rank-name">${r['이름']||'—'}</td>
-            <td class="rank-info">${r['학년']}학년 ${r['반']}반 ${r['번호']}번</td>
-            <td class="rank-score">${sc.toLocaleString()}점</td>
-          </tr>`;
-        }).join('')}
-      </tbody>
-    </table>`;
 }
 </script>
 </body>
