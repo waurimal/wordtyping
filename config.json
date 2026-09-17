@@ -46,6 +46,11 @@
       "code": "L09",
       "name": "Lesson 09",
       "words": "any: 어떤\nchildren: 아이들\nforest: 숲\nhamburger: 햄버거\nplan: 계획\nprogram: 프로그램\nroom: 방\nstay: 머무르다\ntent: 텐트\nvillage: 마을\nzoo: 동물원"
+    },
+    {
+      "code": "3G_L07",
+      "name": "3학년 Lesson 07",
+      "words": "crayon: 크레용\neraser: 지우개\nglue stick: 풀\nnotebook: 공책\npencil: 연필\npencil case: 필통\nruler: 자\nscissors: 가위"
     }
   ]
 }
