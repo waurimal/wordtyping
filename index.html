@@ -2333,14 +2333,18 @@ function renderHallOfFame() {
         const scoreFormatted = Number(item.score || 0).toLocaleString();
         const timeDisplay = item.totalTime ? `${item.totalTime}s` : '';
 
+        const safeMasked = window.WaurimalSanitize ? window.WaurimalSanitize(masked) : masked;
+        const safeInfo = window.WaurimalSanitize ? window.WaurimalSanitize(gradeClassLabel) : gradeClassLabel;
+        const safeLesson = window.WaurimalSanitize ? window.WaurimalSanitize(item.lesson || '-') : (item.lesson || '-');
+
         return `
             <div class="hof-item ${topClass}">
                 <div class="hof-rank-box">${rankDisplay}</div>
                 <div class="hof-user-box">
-                    <span class="hof-user-name">${masked}</span>
-                    ${gradeClassLabel ? `<span class="hof-user-info">${gradeClassLabel}</span>` : ''}
+                    <span class="hof-user-name">${safeMasked}</span>
+                    ${safeInfo ? `<span class="hof-user-info">${safeInfo}</span>` : ''}
                 </div>
-                <span class="hof-lesson-badge">${item.lesson || '-'}</span>
+                <span class="hof-lesson-badge">${safeLesson}</span>
                 <div class="hof-score-box">
                     <span class="hof-score-val">${scoreFormatted}점</span>
                     ${timeDisplay ? `<span class="hof-time-val">⏱️ ${timeDisplay}</span>` : ''}
@@ -2471,6 +2475,23 @@ function parseWords(txt) {
 }
 
 function goto(id) {
+    if (id === 's-teacher') {
+        if (!window.WaurimalAuth || !window.WaurimalAuth.isAuthenticated()) {
+            goto('s-login');
+            return;
+        }
+    }
+    if (id === 's-login') {
+        if (window.WaurimalAuth && window.WaurimalAuth.isAuthenticated()) {
+            document.getElementById('school-input').value = isConfigLoaded ? globalConfig.school : (localStorage.getItem(K_SCHOOL) || '이의초등학교');
+            renderLessonList();
+            hideEditPanel();
+            populateTeacherRecordFilters();
+            renderTeacherRecords();
+            goto('s-teacher');
+            return;
+        }
+    }
     document.querySelectorAll('.scr').forEach(s => s.classList.remove('on'));
     const target = document.getElementById(id);
     if (target) {
@@ -2489,9 +2510,10 @@ function goto(id) {
 
 // ── 교사 로그인 ──
 function doLogin() {
-    const pw = document.getElementById('tpw').value;
+    const pw = document.getElementById('tpw').value.trim();
     const currentPw = localStorage.getItem('waurimal_admin_pw') || localStorage.getItem(K_PW) || '1234';
-    if (pw === currentPw || pw === '1234' || pw === '0000' || pw === '4657' || pw === 'wauri1234') {
+    const authOk = window.WaurimalAuth ? window.WaurimalAuth.authenticate(pw) : (pw === currentPw || pw === '1234');
+    if (authOk) {
         document.getElementById('tpw').value = '';
         document.getElementById('school-input').value = isConfigLoaded ? globalConfig.school : (localStorage.getItem(K_SCHOOL) || '이의초등학교');
         renderLessonList();
@@ -2694,8 +2716,12 @@ function changePw() {
     const p1 = document.getElementById('npw1').value, p2 = document.getElementById('npw2').value;
     if (!p1) { alert('새 비밀번호를 입력하세요.'); return; }
     if (p1 !== p2) { alert('비밀번호가 일치하지 않습니다.'); return; }
+    if (window.WaurimalAuth) {
+        window.WaurimalAuth.setPw(p1);
+    } else {
+        localStorage.setItem('waurimal_admin_pw', p1);
+    }
     localStorage.setItem(K_PW, p1);
-    localStorage.setItem('waurimal_admin_pw', p1);
     document.getElementById('npw1').value = '';
     document.getElementById('npw2').value = '';
     alert('✓ 관리자 비밀번호가 성공적으로 변경되었습니다.');
@@ -2870,18 +2896,22 @@ function renderTeacherRecords() {
 
         const docId = item._id || '';
 
+        const safeName = window.WaurimalSanitize ? window.WaurimalSanitize(rawName) : rawName;
+        const safeHakjeok = window.WaurimalSanitize ? window.WaurimalSanitize(hakjeok) : hakjeok;
+        const safeLesson = window.WaurimalSanitize ? window.WaurimalSanitize(item.lesson || '-') : (item.lesson || '-');
+
         return `
             <tr style="border-bottom:1px solid #E2E8F0; transition:background 0.15s; ${isBad ? 'background:#FFF5F5;' : ''}" onmouseover="this.style.background='#F1F5F9';" onmouseout="this.style.background='${isBad ? '#FFF5F5' : '#ffffff'}';">
                 <td style="padding:0.55rem 0.6rem; text-align:center; font-weight:700; font-size:0.8rem; color:var(--text-sub); width:45px;">${rankBadge}</td>
-                <td style="padding:0.55rem 0.6rem; font-size:0.82rem; color:var(--text-muted); font-weight:700; width:130px; white-space:nowrap;">${hakjeok}</td>
+                <td style="padding:0.55rem 0.6rem; font-size:0.82rem; color:var(--text-muted); font-weight:700; width:130px; white-space:nowrap;">${safeHakjeok}</td>
                 <td style="padding:0.55rem 0.6rem; width:80px; max-width:85px;">
                     <div style="display:flex; flex-direction:column; align-items:flex-start;">
-                        <span style="font-weight:800; color:var(--text-main); font-size:0.86rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:76px;" title="${rawName}">${rawName}</span>
+                        <span style="font-weight:800; color:var(--text-main); font-size:0.86rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:76px;" title="${safeName}">${safeName}</span>
                         ${isBad ? '<span style="background:#FEE2E2; color:#DC2626; font-size:0.65rem; font-weight:800; padding:1px 3px; border-radius:3px; margin-top:2px; white-space:nowrap;">🚨비속어</span>' : ''}
                     </div>
                 </td>
                 <td style="padding:0.55rem 0.6rem; text-align:center;">
-                    <span class="hof-lesson-badge" style="display:inline-block; margin:0; font-size:0.75rem;">${item.lesson || '-'}</span>
+                    <span class="hof-lesson-badge" style="display:inline-block; margin:0; font-size:0.75rem;">${safeLesson}</span>
                 </td>
                 <td style="padding:0.55rem 0.6rem; text-align:right; font-weight:800; color:var(--primary); font-size:0.88rem;">
                     ${Number(item.score || 0).toLocaleString()}점
@@ -3368,12 +3398,13 @@ async function loadLessonLeaderboard(lessonCode) {
             const c = item.classNum || item.class ? `${item.classNum || item.class}반 ` : '';
             const n = item.studentNum || item.number ? `${item.studentNum || item.number}번 ` : '';
             const masked = maskName(item.name);
-            const studentInfo = `${g}${c}${n}${masked}`;
+            const rawStudentInfo = `${g}${c}${n}${masked}`;
+            const safeStudentInfo = window.WaurimalSanitize ? window.WaurimalSanitize(rawStudentInfo) : rawStudentInfo;
 
             return `
                 <div class="lb-item">
                     <span class="lb-rank ${rankClass}">${rankIcon}</span>
-                    <span class="lb-user">${studentInfo}</span>
+                    <span class="lb-user">${safeStudentInfo}</span>
                     <span class="lb-meta">⏱️ ${item.totalTime || 0}s (${item.correct || 0}정답)</span>
                     <span class="lb-score">${item.score || 0}점</span>
                 </div>
