@@ -2322,8 +2322,9 @@ function renderHallOfFame() {
     }
 
     const topItems = uniqueStudents.slice(0, 20); // 상위 20명
-    listEl.innerHTML = topItems.map((item, idx) => {
-        const rank = idx + 1;
+    listEl.innerHTML = topItems.map((item, idx, arr) => {
+        // 동점자 동일 순위 및 차순위 건너뛰기 (1등 2명이면 1등, 1등, 3등)
+        const rank = arr.findIndex(x => Number(x.score || 0) <= Number(item.score || 0)) + 1;
         const topClass = rank === 1 ? 'top-1' : rank === 2 ? 'top-2' : rank === 3 ? 'top-3' : '';
         const rankDisplay = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `<span class="hof-rank-num">${rank}</span>`;
         const masked = maskName(item.name);
@@ -2875,8 +2876,9 @@ function renderTeacherRecords() {
         return;
     }
 
-    tbody.innerHTML = displayList.map((item, idx) => {
-        const rank = idx + 1;
+    tbody.innerHTML = displayList.map((item, idx, arr) => {
+        // 동점자 동일 순위 및 차순위 건너뛰기 (1등 2명이면 1등, 1등, 3등)
+        const rank = arr.findIndex(x => Number(x.score || 0) <= Number(item.score || 0)) + 1;
         const rankBadge = rank === 1 ? '🥇 1' : rank === 2 ? '🥈 2' : rank === 3 ? '🥉 3' : `${rank}`;
         const g = item.grade ? `${item.grade}` : '-';
         const c = (item.classNum || item.class) ? `${item.classNum || item.class}` : '-';
@@ -3390,8 +3392,9 @@ async function loadLessonLeaderboard(lessonCode) {
         }
 
         const top10 = uniqueItems.slice(0, 10);
-        listEl.innerHTML = top10.map((item, idx) => {
-            const rank = idx + 1;
+        listEl.innerHTML = top10.map((item, idx, arr) => {
+            // 동점자 동일 순위 및 차순위 건너뛰기 (1등 2명이면 1등, 1등, 3등)
+            const rank = arr.findIndex(x => Number(x.score || 0) <= Number(item.score || 0)) + 1;
             const rankClass = rank === 1 ? 'lb-rank-1' : rank === 2 ? 'lb-rank-2' : rank === 3 ? 'lb-rank-3' : '';
             const rankIcon = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `${rank}`;
             const g = item.grade ? `${item.grade}학년 ` : '';
