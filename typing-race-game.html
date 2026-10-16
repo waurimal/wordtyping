@@ -608,7 +608,7 @@ function goto(id){
 // ── 교사 로그인 ──
 function doLogin(){
   const pw=document.getElementById('tpw').value;
-  if(pw===(localStorage.getItem(K_PW)||'1234')){
+  if(pw===(localStorage.getItem('waurimal_admin_pw')||localStorage.getItem(K_PW)||'4657')){
     document.getElementById('tpw').value='';
     
     // 교사 모드 진입 시, 현재 로드된 설정값을 폼에 채워넣음

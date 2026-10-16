@@ -1565,7 +1565,7 @@
             <div class="ct t"><i class="fas fa-user-lock"></i> 교사 인증</div>
             <div class="fg">
                 <label>관리자 비밀번호</label>
-                <input type="password" id="tpw" placeholder="비밀번호를 입력하세요 (기본: 1234)" onkeydown="if(event.key==='Enter')doLogin()"/>
+                <input type="password" id="tpw" placeholder="비밀번호를 입력하세요" onkeydown="if(event.key==='Enter')doLogin()"/>
             </div>
             <div class="br">
                 <button type="button" class="btn btn-secondary" onclick="goto('s-mode')">
@@ -2512,8 +2512,8 @@ function goto(id) {
 // ── 교사 로그인 ──
 function doLogin() {
     const pw = document.getElementById('tpw').value.trim();
-    const currentPw = localStorage.getItem('waurimal_admin_pw') || localStorage.getItem(K_PW) || '1234';
-    const authOk = window.WaurimalAuth ? window.WaurimalAuth.authenticate(pw) : (pw === currentPw || pw === '1234');
+    const currentPw = localStorage.getItem('waurimal_admin_pw') || localStorage.getItem(K_PW) || '4657';
+    const authOk = window.WaurimalAuth ? window.WaurimalAuth.authenticate(pw) : (pw === currentPw);
     if (authOk) {
         document.getElementById('tpw').value = '';
         document.getElementById('school-input').value = isConfigLoaded ? globalConfig.school : (localStorage.getItem(K_SCHOOL) || '이의초등학교');
