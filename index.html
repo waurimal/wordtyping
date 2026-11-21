@@ -412,6 +412,32 @@
             line-height: 1.5;
         }
 
+        /* 학년 필터 탭 버튼 */
+        .wt-grade-tab {
+            padding: 0.45rem 0.85rem;
+            font-size: 0.82rem;
+            font-weight: 700;
+            border-radius: 10px;
+            border: 1.5px solid var(--border-color);
+            background: #ffffff;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+        .wt-grade-tab:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        .wt-grade-tab.active {
+            background: var(--primary);
+            color: #ffffff;
+            border-color: var(--primary);
+            box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
+        }
+
         /* 단원 선택 버튼 그리드 (컴팩트 & 크롬북 최적화) */
         .lsel-grid {
             display: grid;
@@ -1786,7 +1812,27 @@
             ⚠️ 등록된 단원이 없습니다. 교사 모드에서 단원을 추가해 주세요.
         </div>
         <div class="card" style="padding: 1.25rem 1.4rem;">
-            <div class="ct" style="margin-bottom: 0.5rem; font-size: 1.05rem;"><i class="fas fa-layer-group"></i> 학습할 단원을 선택하세요</div>
+            <div class="ct" style="margin-bottom: 0.75rem; font-size: 1.05rem; display:flex; justify-content:space-between; align-items:center;">
+                <span><i class="fas fa-layer-group"></i> 학습할 학년과 단원을 선택하세요</span>
+                <span style="font-size:0.75rem; color:var(--text-muted); font-weight:600;">초등 3~6학년 48개 전 단원</span>
+            </div>
+
+            <!-- 학년 선택 필터 탭 (3, 4학년: YBM 최희경 / 5, 6학년: 천재 함순애) -->
+            <div class="wt-grade-tabs-wrap" style="display:flex; gap:0.45rem; margin-bottom:0.85rem; flex-wrap:wrap;" id="wtGradeTabsWrap">
+                <button type="button" class="wt-grade-tab" data-grade="3" onclick="filterWordtypingGrade(3)">
+                    <i class="fas fa-graduation-cap"></i> 3학년 <span style="font-size:0.72rem; font-weight:500;">(YBM 최희경)</span>
+                </button>
+                <button type="button" class="wt-grade-tab" data-grade="4" onclick="filterWordtypingGrade(4)">
+                    <i class="fas fa-graduation-cap"></i> 4학년 <span style="font-size:0.72rem; font-weight:500;">(YBM 최희경)</span>
+                </button>
+                <button type="button" class="wt-grade-tab" data-grade="5" onclick="filterWordtypingGrade(5)">
+                    <i class="fas fa-graduation-cap"></i> 5학년 <span style="font-size:0.72rem; font-weight:500;">(천재 함순애)</span>
+                </button>
+                <button type="button" class="wt-grade-tab active" data-grade="6" onclick="filterWordtypingGrade(6)">
+                    <i class="fas fa-graduation-cap"></i> 6학년 <span style="font-size:0.72rem; font-weight:500;">(천재 함순애)</span>
+                </button>
+            </div>
+
             <div class="lsel-grid" id="lsel-grid"></div>
         </div>
         <div class="br" style="justify-content: space-between; margin-top: 1rem;">
@@ -2355,60 +2401,77 @@ function renderHallOfFame() {
     }).join('');
 }
 
-// ── 데이터 로딩 (Firebase Firestore 우선 -> config.json -> localStorage) ──
+// ── 데이터 로딩 (WaurimalCurriculum 우선 -> config.json -> Firestore -> localStorage) ──
 async function initAppConfig() {
-    let cloudLoaded = false;
-    if (db) {
+    let loaded = false;
+
+    // 1) WaurimalCurriculum (정규 공통 교과과정 48단원) 최우선 자동 연동
+    if (window.WaurimalCurriculum && typeof window.WaurimalCurriculum.getLessons === 'function') {
         try {
-            const docSnap = await db.collection('games').doc('wordtyping').collection('settings').doc('main').get();
-            if (docSnap.exists) {
-                const data = docSnap.data();
-                if (data && data.lessons && data.lessons.length > 0) {
-                    globalConfig = data;
-                    isConfigLoaded = true;
-                    lessons = data.lessons || [];
-                    if (data.school) {
-                        document.getElementById('school-nm').textContent = data.school;
-                    }
-                    updateWelcomeBox();
-                    populateHofLessonSelect();
-                    cloudLoaded = true;
-                }
+            const cLessons = window.WaurimalCurriculum.getLessons();
+            if (Array.isArray(cLessons) && cLessons.length > 0) {
+                lessons = cLessons.map(l => ({
+                    code: l.code,
+                    grade: l.grade,
+                    publisher: l.publisher || '',
+                    name: l.name,
+                    words: l.words || []
+                }));
+                isConfigLoaded = true;
+                loaded = true;
+                console.log("[wordtyping] WaurimalCurriculum 연동 완료:", lessons.length, "개 단원 로드");
             }
-        } catch (e) {
-            console.warn('Firestore 설정 로드 알림 (오프라인/대체 로드):', e);
+        } catch(e) {
+            console.warn("[wordtyping] WaurimalCurriculum 연동 오류:", e);
         }
     }
 
-    if (!cloudLoaded) {
+    // 2) config.json 백업 로드
+    if (!loaded) {
         try {
             const res = await fetch('config.json?t=' + new Date().getTime(), { cache: 'no-store' });
-            if(res.ok) {
+            if (res.ok) {
                 const data = await res.json();
                 globalConfig = data;
                 isConfigLoaded = true;
                 lessons = data.lessons || [];
-                if(data.school) {
+                if (data.school) {
                     document.getElementById('school-nm').textContent = data.school;
                 }
-                updateWelcomeBox();
-                populateHofLessonSelect();
-                cloudLoaded = true;
+                loaded = true;
             }
         } catch(e) {
             console.log('config.json 로드 실패, 로컬 백업 확인');
         }
     }
 
-    if (!cloudLoaded) {
+    // 3) Firestore 교사 맞춤 설정 오버라이드 확인
+    if (db) {
+        try {
+            const docSnap = await db.collection('games').doc('wordtyping').collection('settings').doc('main').get();
+            if (docSnap.exists) {
+                const data = docSnap.data();
+                if (data) {
+                    if (data.school) {
+                        document.getElementById('school-nm').textContent = data.school;
+                        globalConfig.school = data.school;
+                    }
+                }
+            }
+        } catch (e) {
+            console.warn('Firestore 설정 로드 알림:', e);
+        }
+    }
+
+    // 4) 로컬스토리지 백업
+    if (!loaded) {
         try { lessons = JSON.parse(localStorage.getItem(K_LESSONS) || '[]'); } catch { lessons = []; }
         globalConfig.school = localStorage.getItem(K_SCHOOL) || '이의초등학교';
         document.getElementById('school-nm').textContent = globalConfig.school;
-        updateWelcomeBox();
-        populateHofLessonSelect();
     }
 
-    // 명예의 전당 초기 로드
+    updateWelcomeBox();
+    populateHofLessonSelect();
     loadHofScores(true);
 }
 
@@ -2467,12 +2530,40 @@ window.addEventListener('waurimal_student_updated', () => {
 
 // ── 헬퍼 함수 ──
 function parseWords(txt) {
-    return (txt || '').split('\n').map(l => l.trim()).filter(l => l && l.includes(':'))
+    if (!txt) return [];
+    if (Array.isArray(txt)) {
+        return txt.map(w => {
+            if (typeof w === 'string') {
+                const parts = w.split(':');
+                return { word: parts[0]?.trim() || '', meaning: parts[1]?.trim() || '' };
+            }
+            return {
+                word: (w.word || w.en || '').trim(),
+                meaning: (w.meaning || w.kr || '').trim()
+            };
+        }).filter(w => w.word && w.meaning);
+    }
+    if (typeof txt !== 'string') return [];
+    return txt.split('\n').map(l => l.trim()).filter(l => l && l.includes(':'))
         .map(l => {
             const [w, ...r] = l.split(':');
             return { word: w.trim(), meaning: r.join(':').trim() };
         })
         .filter(w => w.word && w.meaning);
+}
+
+function formatWordsForText(words) {
+    if (!words) return '';
+    if (typeof words === 'string') return words;
+    if (Array.isArray(words)) {
+        return words.map(w => {
+            if (typeof w === 'string') return w;
+            const en = (w.en || w.word || '').trim();
+            const kr = (w.kr || w.meaning || '').trim();
+            return en && kr ? `${en} : ${kr}` : en;
+        }).join('\n');
+    }
+    return '';
 }
 
 function goto(id) {
@@ -2548,7 +2639,7 @@ function selectLesson(i) {
     const l = lessons[i];
     document.getElementById('edit-badge').textContent = l.code;
     document.getElementById('edit-title').textContent = l.name ? `— ${l.name}` : '';
-    document.getElementById('word-input').value = l.words || '';
+    document.getElementById('word-input').value = formatWordsForText(l.words);
     renderChips(parseWords(l.words || ''));
     document.getElementById('edit-panel').style.display = 'block';
     renderLessonList();
@@ -3010,16 +3101,59 @@ async function reloadTeacherScores() {
     }
 }
 
-// ── 학생 진입 플로우 ──
+// ── 학생 진입 플로우 (학년별 필터 탭 연동) ──
+let currentStudentGrade = 6;
+
+function filterWordtypingGrade(grade) {
+    currentStudentGrade = Number(grade) || 6;
+    document.querySelectorAll('.wt-grade-tab').forEach(tab => {
+        const g = Number(tab.getAttribute('data-grade'));
+        tab.classList.toggle('active', g === currentStudentGrade);
+    });
+    renderStudentLessons(currentStudentGrade);
+}
+
+function renderStudentLessons(grade = currentStudentGrade) {
+    const grid = document.getElementById('lsel-grid');
+    if (!grid) return;
+
+    let gradeLessons = lessons.filter(l => {
+        if (l.grade && Number(l.grade) === Number(grade)) return true;
+        if (l.code && l.code.startsWith(`${grade}G_`)) return true;
+        if (grade === 6 && l.code && l.code.startsWith('L') && !l.code.includes('G')) return true;
+        return false;
+    });
+
+    if (gradeLessons.length === 0) {
+        gradeLessons = lessons;
+    }
+
+    const valid = gradeLessons.filter(l => parseWords(l.words).length > 0);
+    const warn = document.getElementById('bnr-warn');
+    if (warn) warn.style.display = valid.length ? 'none' : 'flex';
+
+    grid.innerHTML = valid.map(l => {
+        const wordCount = parseWords(l.words).length;
+        const isSel = (selLesson && selLesson.code === l.code);
+        let cleanName = (l.name || l.code).replace(/^\[.*?\]\s*/, '');
+        return `
+            <div class="lsel-card ${isSel ? 'sel' : ''}" id="lc-${l.code}" onclick="selectStudentLesson('${l.code}')" title="${l.name || l.code}">
+                <div class="lsel-code">${l.code}</div>
+                <div class="lsel-name">${cleanName}</div>
+                <div class="lsel-cnt">${wordCount} 단어</div>
+            </div>`;
+    }).join('');
+}
+
 function enterStudent() {
-    const valid = lessons.filter(l => parseWords(l.words).length > 0);
-    document.getElementById('bnr-warn').style.display = valid.length ? 'none' : 'flex';
-    document.getElementById('lsel-grid').innerHTML = valid.map(l => `
-        <div class="lsel-card" id="lc-${l.code}" onclick="selectStudentLesson('${l.code}')" title="${l.name || l.code}">
-            <div class="lsel-code">${l.code}</div>
-            ${l.name ? `<div class="lsel-name">${l.name}</div>` : ''}
-            <div class="lsel-cnt">${parseWords(l.words).length} 단어</div>
-        </div>`).join('');
+    let profile = null;
+    if (window.WaurimalStudent && typeof WaurimalStudent.get === 'function') {
+        profile = WaurimalStudent.get();
+        if (profile && profile.grade && [3, 4, 5, 6].includes(Number(profile.grade))) {
+            currentStudentGrade = Number(profile.grade);
+        }
+    }
+    filterWordtypingGrade(currentStudentGrade);
     selLesson = null;
     goto('s-lesson');
 }
@@ -3028,7 +3162,7 @@ function selectStudentLesson(code) {
     document.querySelectorAll('.lsel-card').forEach(c => c.classList.remove('sel'));
     const el = document.getElementById('lc-' + code);
     if (el) el.classList.add('sel');
-    selLesson = lessons.find(l => l.code === code);
+    selLesson = lessons.find(l => l.code === code) || null;
     try { if (window.WaurimalAudio) WaurimalAudio.play('click'); } catch(e){}
 }
 
